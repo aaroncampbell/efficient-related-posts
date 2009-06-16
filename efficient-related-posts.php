@@ -1,14 +1,17 @@
 <?php
 /**
  * Plugin Name: Efficient Related Posts
- * Plugin URI: http://xavisys.com/contact-us/?reason=Related+Posts+for+High+Volume+Sites
+ * Plugin URI: http://xavisys.com/2009/06/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.2.3
+ * Version: 0.2.4
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
  */
 /**
  *	Changelog:
+ * 		06/16/2009 - 0.2.4:
+ *			- Fixed plugin URI
+ *
  * 		06/16/2009 - 0.2.3:
  *			- Released via WordPress.org
  *

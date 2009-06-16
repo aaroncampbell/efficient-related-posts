@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal%4
 Tags: related posts, posts, related, seo
 Requires at least: 2.7
 Tested up to: 2.8.1
-Stable tag: 0.2.3
+Stable tag: 0.2.4
 
 A related posts plugin that works quickly even with thousands of posts and tags. Requires PHP5.
 
