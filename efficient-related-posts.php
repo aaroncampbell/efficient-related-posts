@@ -3,12 +3,16 @@
  * Plugin Name: Efficient Related Posts
  * Plugin URI: http://xavisys.com/2009/06/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.2.4
+ * Version: 0.2.5
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
  */
 /**
  *	Changelog:
+ * 		06/17/2009 - 0.2.5:
+ *			- Fixed warning caused by array_walk returning a non-array
+ *			- Add link to settings page.
+ *
  * 		06/16/2009 - 0.2.4:
  *			- Fixed plugin URI
  *
@@ -291,7 +295,8 @@ class efficientRelatedPosts {
 
 			if ( !empty($postIds) ) {
 				// Make sure each element is an integer and filter out any 0s
-				$postIds = array_diff(array_walk($postIds, 'absint'), array('','0'));
+				$postIds = array_walk($postIds, 'absint');
+				$postIds = array_diff((array) $postIds, array('','0'));
 			}
 			if ( !empty($postIds) ) {
 				// If it's still not empty, make a SQL WHERE clause
@@ -499,6 +504,19 @@ QUERY;
 		$this->_settings['max_relations_stored'] = intval($this->_settings['max_relations_stored']);
 		$this->_settings['num_to_display'] = intval($this->_settings['num_to_display']);
 	}
+
+	public function addSettingLink( $links, $file ){
+		if ( empty($this->_pluginBasename) ) {
+			$this->_pluginBasename = plugin_basename(__FILE__);
+		}
+
+		if ( $file == $this->_pluginBasename ) {
+			// Add settings link to our plugin
+			$link = '<a href="options-general.php?page=efficientRelatedPosts">' . __('Settings', 'efficient_related_posts') . '</a>';
+			array_unshift( $links, $link );
+		}
+		return $links;
+	}
 }
 
 /**
@@ -542,6 +560,7 @@ add_action( 'save_post', array( $efficientRelatedPosts, 'processPost' ) );
 add_action( 'admin_menu', array( $efficientRelatedPosts, 'admin_menu' ) );
 add_action( 'admin_init', array( $efficientRelatedPosts, 'processPosts' ) );
 add_action( 'admin_init', array( $efficientRelatedPosts, 'registerOptions' ) );
+add_filter( 'plugin_action_links', array( $efficientRelatedPosts, 'addSettingLink' ), 10, 2 );
 
 /**
  * For use with debugging
