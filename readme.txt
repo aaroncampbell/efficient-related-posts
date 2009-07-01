@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal%4
 Tags: related posts, posts, related, seo
 Requires at least: 2.7
 Tested up to: 2.8.1
-Stable tag: 0.2.5
+Stable tag: 0.2.6
 
 A related posts plugin that works quickly even with thousands of posts and tags. Requires PHP5.
 
@@ -60,3 +60,63 @@ will show the posts they are most related to regardless of post date.
 
 Posts are considered related based on tags.  This may be extended in the future,
 but I wanted to keep the queries as clean as possible.
+
+== Changelog ==
+
+= 0.2.6 =
+* Categories to ignore are now chosen using checkboxes!  Much better than finding category IDs and making a comma separated list of them
+* Moved Changelog into readme file so you can see it on wordpress.org
+
+= 0.2.5 =
+* Fixed warning caused by array_walk returning a non-array
+* Add link to settings page.
+
+= 0.2.4 =
+* Fixed plugin URI
+
+= 0.2.3 =
+* Released via WordPress.org
+
+= 0.2.2 =
+* Fixed issue with title not displaying
+* Renamed in anticipation of adding to WordPress.org
+
+= 0.2.1 =
+* When spidering though related posts, limit the posts that are checked
+
+= 0.2.0 =
+* First run of processing posts in chunks
+
+= 0.1.4 =
+* Fixed array_slice error that showed up when there were no related posts
+* Fixed the issue with the "No Related Posts" text not showing
+
+= 0.1.3 =
+* Formatted Admin page warning correctly
+
+= 0.1.2 =
+* Added all copy and made it all translatable for future application
+
+= 0.1.1 =
+* MySQL query optimizations to reduce processing time
+
+= 0.1.0 =
+* Added all settings to admin page
+* Added helper functions for displaying
+* Added ability to add related posts to RSS
+* Added ability to ignore categories from matches
+* Added ability to automatically add to posts
+* Added ability to specify title
+* Added ability to specify text to display if no related posts exist
+
+= 0.0.4 =
+* Added admin page to process posts - still needs serious cleanup
+
+= 0.0.3 =
+* Processes all posts
+
+= 0.0.2 =
+* Processes Post now
+
+= 0.0.1 =
+* Original Version

@@ -3,66 +3,11 @@
  * Plugin Name: Efficient Related Posts
  * Plugin URI: http://xavisys.com/2009/06/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.2.5
+ * Version: 0.2.6
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
  */
-/**
- *	Changelog:
- * 		06/17/2009 - 0.2.5:
- *			- Fixed warning caused by array_walk returning a non-array
- *			- Add link to settings page.
- *
- * 		06/16/2009 - 0.2.4:
- *			- Fixed plugin URI
- *
- * 		06/16/2009 - 0.2.3:
- *			- Released via WordPress.org
- *
- * 		06/15/2009 - 0.2.2:
- *			- Fixed issue with title not displaying
- *			- Renamed in anticipation of adding to WordPress.org
- *
- * 		04/24/2009 - 0.2.1:
- *			- When spidering though related posts, limit the posts that are checked
- *
- * 		02/18/2009 - 0.2.0:
- *			- First run of processing posts in chunks
- *
- * 		02/18/2009 - 0.1.4:
- *			- Fixed array_slice error that showed up when there were no related posts
- *			- Fixed the issue with the "No Related Posts" text not showing
- *
- * 		02/18/2009 - 0.1.3:
- *			- Formatted Admin page warning correctly
- *
- * 		02/18/2009 - 0.1.2:
- *			- Added all copy and made it all translatable for future application
- *
- * 		02/18/2009 - 0.1.1:
- *			- MySQL query optimizations to reduce processing time
- *
- * 		02/17/2009 - 0.1.0:
- *			- Added all settings to admin page
- *			- Added helper functions for displaying
- *			- Added ability to add related posts to RSS
- *			- Added ability to ignore categories from matches
- *			- Added ability to automatically add to posts
- *			- Added ability to specify title
- *			- Added ability to specify text to display if no related posts exist
- *
- * 		02/16/2009 - 0.0.4:
- *			- Added admin page to process posts - still needs serious cleanup
- *
- * 		02/16/2009 - 0.0.3:
- *			- Processes all posts
- *
- * 		02/15/2009 - 0.0.2:
- *			- Processes Post now
- *
- * 		02/12/2009 - 0.0.1:
- *			- Original Version
- */
+
 /**
  * efficientRelatedPosts is the class that handles ALL of the plugin functionality.
  * It helps us avoid name collisions
@@ -173,9 +118,15 @@ class efficientRelatedPosts {
 						<th scope="row">
 							<label for="erp_ignore_cats"><?php _e('Ignore Categories:', 'efficient_related_posts'); ?></label>
 						</th>
-						<td>
-							<input id="erp_ignore_cats" name="erp[ignore_cats]" type="text" class="regular-text code" value="<?php echo attribute_escape(implode(',', $this->_settings['ignore_cats'])); ?>" size="40" />
-							<span class="setting-description"><?php _e('Comma Separated Category IDs', 'efficient_related_posts'); ?></span>
+						<td id="categorydiv">
+							<div id="categories-all" class="tabs-panel">
+								<ul id="categorychecklist" class="list:category categorychecklist form-no-clear">
+<?php
+							$erpWalker = new Walker_Category_Checklist_ERP();
+							wp_category_checklist(0, 0, $this->_settings['ignore_cats'], array(), $erpWalker);
+?>
+								</ul>
+							</div>
 						</td>
 					</tr>
 					<tr valign="top">
@@ -518,6 +469,35 @@ QUERY;
 		return $links;
 	}
 }
+/**
+ * Our custom Walker because Walker_Category_Checklist doesn't let you use your own field name
+ */
+class Walker_Category_Checklist_ERP extends Walker {
+	var $tree_type = 'category';
+	var $db_fields = array ('parent' => 'parent', 'id' => 'term_id'); //TODO: decouple this
+
+	function start_lvl(&$output, $depth, $args) {
+		$indent = str_repeat("\t", $depth);
+		$output .= "$indent<ul class='children'>\n";
+	}
+
+	function end_lvl(&$output, $depth, $args) {
+		$indent = str_repeat("\t", $depth);
+		$output .= "$indent</ul>\n";
+	}
+
+	function start_el(&$output, $category, $depth, $args) {
+		extract($args);
+
+		$class = in_array( $category->term_id, $popular_cats ) ? ' class="popular-category"' : '';
+		$output .= "\n<li id='category-$category->term_id'$class>" . '<label class="selectit"><input value="' . $category->term_id . '" type="checkbox" name="erp[ignore_cats][]" id="in-category-' . $category->term_id . '"' . (in_array( $category->term_id, $selected_cats ) ? ' checked="checked"' : "" ) . '/> ' . esc_html( apply_filters('the_category', $category->name )) . '</label>';
+	}
+
+	function end_el(&$output, $category, $depth, $args) {
+		$output .= "</li>\n";
+	}
+}
+
 
 /**
  * Helper functions
