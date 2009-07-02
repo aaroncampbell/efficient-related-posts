@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal%4
 Tags: related posts, posts, related, seo
 Requires at least: 2.7
 Tested up to: 2.8.1
-Stable tag: 0.2.6
+Stable tag: 0.2.7
 
 A related posts plugin that works quickly even with thousands of posts and tags. Requires PHP5.
 
@@ -62,6 +62,9 @@ Posts are considered related based on tags.  This may be extended in the future,
 but I wanted to keep the queries as clean as possible.
 
 == Changelog ==
+
+= 0.2.7 =
+* Replaced esc_html with wp_specialchars for those still on 2.7.x
 
 = 0.2.6 =
 * Categories to ignore are now chosen using checkboxes!  Much better than finding category IDs and making a comma separated list of them
