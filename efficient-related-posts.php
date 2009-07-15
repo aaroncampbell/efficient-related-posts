@@ -3,7 +3,7 @@
  * Plugin Name: Efficient Related Posts
  * Plugin URI: http://xavisys.com/2009/06/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.2.7
+ * Version: 0.3.0
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
  */
@@ -227,6 +227,10 @@ class efficientRelatedPosts {
 <?php
 	}
 
+	private function _getPostIDs(&$p, $key) {
+		$p = absint($p['ID']);
+	}
+
 	private function _findRelations($post, $processRelated = false, $postIds = null) {
 		// Try to increase the time limit
 		set_time_limit(60);
@@ -246,8 +250,8 @@ class efficientRelatedPosts {
 
 			if ( !empty($postIds) ) {
 				// Make sure each element is an integer and filter out any 0s
-				$postIds = array_walk($postIds, 'absint');
-				$postIds = array_diff((array) $postIds, array('','0'));
+				array_walk($postIds, array($this, '_getPostIDs'));
+				$postIds = array_diff(array_unique((array) $postIds), array('','0'));
 			}
 			if ( !empty($postIds) ) {
 				// If it's still not empty, make a SQL WHERE clause
@@ -260,6 +264,7 @@ class efficientRelatedPosts {
 			$q = <<<QUERY
 			SELECT
 				p.ID,
+				p.post_title,
 				count(t_r.object_id) as matches
 			FROM
 				{$wpdb->term_taxonomy} t_t,
@@ -282,7 +287,6 @@ class efficientRelatedPosts {
 
 QUERY;
 			$related_posts = $wpdb->get_results($q);
-
 			$allRelatedPosts = array();
 			$relatedPostsToStore = array();
 			$threshold = '';
@@ -295,7 +299,9 @@ QUERY;
 
 					if ( empty($overlap) && count($relatedPostsToStore) < $this->_settings['max_relations_stored'] ) {
 						$threshold = $related_post->matches;
-						$relatedPostsToStore[] = $related_post->ID;
+						//unset($related_post->matches);
+						$related_post->permalink = get_permalink($related_post->ID);
+						$relatedPostsToStore[] = (array)$related_post;
 					}
 				}
 			}
@@ -316,11 +322,10 @@ QUERY;
 				foreach ( $allRelatedPosts as $p ) {
 					$threshold = get_post_meta($p->ID, '_relation_threshold', true);
 
-					if ( empty($threshold) || $threshold < $p->matches ) {
+					if ( empty($threshold) || $threshold <= $p->matches ) {
 						// Get the current related posts
 						$relatedPosts = get_post_meta($p->ID, '_efficient_related_posts', true);
-						// Add current post to the list
-						$relatedPosts[] = $post->ID;
+						$relatedPosts[] = array('ID'=>$post->ID,'post_title'=>$post->post_title);
 						// Find the relations, but limit the posts that are checked to save memory/time
 						$this->_findRelations( $p->ID, false, $relatedPosts );
 					}
@@ -399,9 +404,19 @@ QUERY;
 			$output .= "<li>{$settings['no_rp_text']}</li>";
 		} else {
 			$relatedPosts = array_slice($relatedPosts, 0, $settings['num_to_display']);
-			foreach ( $relatedPosts as $pid ) {
-				$related_post = get_post($pid);
-				$link = '<a href="' . get_permalink($related_post->ID).'" title="'.attribute_escape(wptexturize($related_post->post_title)).'">'.wptexturize($related_post->post_title).'</a>';
+			foreach ( $relatedPosts as $p ) {
+				/**
+				 * Handle IDs for backwards compat
+				 */
+				if ( ctype_digit($p) ) {
+					$related_post = get_post($p);
+					$p = array(
+						'ID'			=> $related_post->ID,
+						'post_title'	=> $related_post->post_title,
+						'permalink'		=> get_permalink($related_post->ID)
+					);
+				}
+				$link = "<a href='{$p['permalink']}' title='" . attribute_escape(wptexturize($p['post_title']))."'>".wptexturize($p['post_title']).'</a>';
 				$output .= "<li>{$link}</li>";
 			}
 		}
@@ -467,6 +482,38 @@ QUERY;
 			array_unshift( $links, $link );
 		}
 		return $links;
+	}
+
+	public function fixPermalinks(){
+		global $wpdb;
+
+		$query = <<<QUERY
+		SELECT * FROM `{$wpdb->postmeta}` WHERE `meta_key`='_efficient_related_posts'
+QUERY;
+
+		$relatedPostMeta = $wpdb->get_results($query);
+
+		foreach ($relatedPostMeta as $relatedPosts) {
+			$relatedPosts->meta_value = maybe_unserialize($relatedPosts->meta_value);
+			foreach ($relatedPosts->meta_value as &$relatedPost) {
+				$relatedPost['permalink'] = get_permalink($relatedPost['ID']);
+			}
+
+			$relatedPosts->meta_value = maybe_serialize( stripslashes_deep($relatedPosts->meta_value) );
+
+			$data  = array( 'meta_value' => $relatedPosts->meta_value);
+			$where = array(
+				'meta_key'	=> $relatedPosts->meta_key,
+				'post_id'	=> $relatedPosts->post_id
+			);
+
+			$wpdb->update( $wpdb->postmeta, $data, $where );
+			wp_cache_delete($relatedPosts->post_id, 'post_meta');
+		}
+	}
+
+	public function activate() {
+		$this->processAllPosts();
 	}
 }
 /**
@@ -540,7 +587,9 @@ add_action( 'save_post', array( $efficientRelatedPosts, 'processPost' ) );
 add_action( 'admin_menu', array( $efficientRelatedPosts, 'admin_menu' ) );
 add_action( 'admin_init', array( $efficientRelatedPosts, 'processPosts' ) );
 add_action( 'admin_init', array( $efficientRelatedPosts, 'registerOptions' ) );
+add_action( 'permalink_structure_changed', array( $efficientRelatedPosts, 'fixPermalinks' ) );
 add_filter( 'plugin_action_links', array( $efficientRelatedPosts, 'addSettingLink' ), 10, 2 );
+register_activation_hook( __FILE__, array( $efficientRelatedPosts, 'activate' ) );
 
 /**
  * For use with debugging
