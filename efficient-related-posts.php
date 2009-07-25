@@ -3,9 +3,10 @@
  * Plugin Name: Efficient Related Posts
  * Plugin URI: http://xavisys.com/2009/06/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.3.0
+ * Version: 0.3.1
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
+ * Text Domain: efficient_related_posts
  */
 
 /**
@@ -40,6 +41,14 @@ class efficientRelatedPosts {
 		}
 		if ( $this->_settings['rss'] == 'yes' ) {
 			add_filter('the_content', array( $this, 'filterPostContentRSS'), 1);
+		}
+		/**
+		 * Add update messages that can be attached to the CURRENT release (not
+		 * this one), but only for 2.8+
+		 */
+		global $wp_version;
+		if ( version_compare('2.8', $wp_version, '<=') ) {
+			add_action ( 'in_plugin_update_message-'.plugin_basename ( __FILE__ ) , array ( $this , '_changelog' ), null, 2 );
 		}
 	}
 
@@ -159,6 +168,16 @@ class efficientRelatedPosts {
 							<br />
 							<input name="erp[auto_insert]" id="erp_auto_insert_all" type="radio" value="all"<?php checked('all', $this->_settings['auto_insert']) ?>>
 							<label for="erp_auto_insert_all">
+								<?php _e("Auto Insert Everywhere (Posts and Pages)",'efficient_related_posts');?>
+							</label>
+							<br />
+							<input name="erp[auto_insert]" id="erp_auto_insert_single-all" type="radio" value="single-all"<?php checked('single-all', $this->_settings['auto_insert']) ?>>
+							<label for="erp_auto_insert_single-all">
+								<?php _e("Auto Insert Into Only Single Posts and Pages",'efficient_related_posts');?>
+							</label>
+							<br />
+							<input name="erp[auto_insert]" id="erp_auto_insert_posts" type="radio" value="posts"<?php checked('posts', $this->_settings['auto_insert']) ?>>
+							<label for="erp_auto_insert_posts">
 								<?php _e("Auto Insert Into Posts",'efficient_related_posts');?>
 							</label>
 							<br />
@@ -392,6 +411,12 @@ QUERY;
 		return $postIDs;
 	}
 
+	/**
+	 * @param [optional]$args Array of arguments containing any of the following:
+	 * 	[num_to_display]	- Number of Posts to display
+	 * 	[no_rp_text]		- Text to display if there are no related posts
+	 * 	[title]				- Title for related posts list, empty for none
+	 */
 	public function getRelatedPosts( $args = array() ) {
 		global $post;
 		$output = '';
@@ -430,13 +455,24 @@ QUERY;
 		return $output;
 	}
 
+	/**
+	 * @param [optional]$args See efficientRelatedPosts::getRelatedPosts
+	 */
 	public function relatedPosts( $args = array() ) {
 		echo $this->getRelatedPosts($args);
 	}
 
 	public function filterPostContent($content) {
 		// We don't want to filter if this is a feed or if settings tell us not to
-		if ( ($this->_settings['auto_insert'] == 'all' || ( $this->_settings['auto_insert'] == 'single' && is_single() ) ) && !is_feed() ) {
+		if (
+				(
+					$this->_settings['auto_insert'] == 'all' ||
+					( $this->_settings['auto_insert'] == 'posts' && !is_page() ) ||
+					( $this->_settings['auto_insert'] == 'single-all' && is_singular() && !is_attachment() && !is_home() ) ||
+					( $this->_settings['auto_insert'] == 'single' && is_single() )
+				)
+				&& !is_feed()
+			) {
 			$content .= $this->getRelatedPosts();
 		}
 
@@ -515,6 +551,15 @@ QUERY;
 	public function activate() {
 		$this->processAllPosts();
 	}
+
+	public function _changelog ($pluginData, $newPluginData) {
+		$url = "{$this->_reposUrl}/{$newPluginData->slug}/tags/{$newPluginData->new_version}/upgrade.html";
+		$response = wp_remote_get ( $url );
+		$code = (int) wp_remote_retrieve_response_code ( $response );
+		if ( $code == 200 ) {
+			echo wp_remote_retrieve_body ( $response );
+		}
+	}
 }
 /**
  * Our custom Walker because Walker_Category_Checklist doesn't let you use your own field name
@@ -550,12 +595,18 @@ class Walker_Category_Checklist_ERP extends Walker {
  * Helper functions
  */
 
+/**
+ * @param [optional]$args See efficientRelatedPosts::getRelatedPosts
+ */
 function wp_related_posts( $args = array() ) {
 	// Instantiate our class
 	$efficientRelatedPosts = efficientRelatedPosts::getInstance();
 	$efficientRelatedPosts->relatedPosts($args);
 }
 
+/**
+ * @param [optional]$args See efficientRelatedPosts::getRelatedPosts
+ */
 function wp_get_related_posts( $args = array() ) {
 	// Instantiate our class
 	$efficientRelatedPosts = efficientRelatedPosts::getInstance();
