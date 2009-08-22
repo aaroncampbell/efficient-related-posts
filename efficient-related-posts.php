@@ -3,7 +3,7 @@
  * Plugin Name: Efficient Related Posts
  * Plugin URI: http://xavisys.com/2009/06/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.3.1
+ * Version: 0.3.2
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
  * Text Domain: efficient_related_posts
@@ -560,6 +560,21 @@ QUERY;
 			echo wp_remote_retrieve_body ( $response );
 		}
 	}
+
+    /**
+	 * Replace our shortCode with the list of related posts
+	 *
+	 * @param array $attr - array of attributes from the shortCode
+	 * @param string $content - Content of the shortCode
+	 * @return string - formatted XHTML replacement for the shortCode
+	 */
+    public function handleShortcodes($attr, $content = '') {
+		if ( !empty($content) && empty($attr['title']) ) {
+			$attr['title'] = $content;
+		}
+        $attr = shortcode_atts($this->_settings, $attr);
+		return $this->getRelatedPosts($attr);
+	}
 }
 /**
  * Our custom Walker because Walker_Category_Checklist doesn't let you use your own field name
@@ -640,6 +655,7 @@ add_action( 'admin_init', array( $efficientRelatedPosts, 'processPosts' ) );
 add_action( 'admin_init', array( $efficientRelatedPosts, 'registerOptions' ) );
 add_action( 'permalink_structure_changed', array( $efficientRelatedPosts, 'fixPermalinks' ) );
 add_filter( 'plugin_action_links', array( $efficientRelatedPosts, 'addSettingLink' ), 10, 2 );
+add_shortcode('relatedPosts', array($efficientRelatedPosts, 'handleShortcodes'));
 register_activation_hook( __FILE__, array( $efficientRelatedPosts, 'activate' ) );
 
 /**

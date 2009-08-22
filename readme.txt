@@ -4,9 +4,9 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal%4
 Tags: related posts, posts, related, seo
 Requires at least: 2.7
 Tested up to: 2.8.1
-Stable tag: 0.3.1
+Stable tag: 0.3.2
 
-A related posts plugin that works quickly even with thousands of posts and tags. Requires PHP5.
+A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts. Requires PHP5.
 
 == Description ==
 
@@ -45,8 +45,42 @@ You may also be interested in <a href="http://wpinformer.com">WordPress tips and
 1. Verify that you have PHP5, which is required for this plugin.
 1. Upload the whole `efficient-related-posts` directory to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
+1. Configure related posts by going to Settings -> Related Posts
 
 == Frequently Asked Questions ==
+
+= How can I add a list of related posts to my posts? =
+
+You can configure Efficient Related Posts to add related posts automatically in
+Settings -> Related Posts.  Alternatively you can use the shortcode
+[relatedPosts] or the helper functions wp_get_related_posts() and
+wp_related_posts() in your theme files.
+
+= How exactly do you use the [relatedPosts] shortcode? =
+
+To use the default settings (from Settings -> Related Posts) you just need to
+add `[relatedPosts]` to your post or page where you want to list to be.  You can
+also add some attributes to it such as num_to_display (Number of related posts
+to display), no_rp_text (Text to display if there are no related posts), and
+title (Title for related posts list, empty for none) like this:
+
+* `[relatedPosts title="Most Related Post" num_to_display="1"]`
+* `[relatedPosts num_to_display="1" no_rp_text="No Related Posts Found"]`
+* `[relatedPosts title="Try these related posts:" num_to_display="3" no_rp_text="No Related Posts Found"]`
+
+= How do the theme helper functions work? =
+
+You can use `wp_get_related_posts()` and `wp_related_posts()` to display a list
+of related posts in your theme.  They need to be used in "the loop" and the only
+difference is that `wp_get_related_posts()` returns the list and
+`wp_related_posts()` echos the list.  You can also pass an associative array of
+arguments to it such as num_to_display (Number of related posts to display),
+no_rp_text (Text to display if there are no related posts), and title (Title for
+related posts list, empty for none) like this:
+
+* `wp_related_posts(array('title'=>'Most Related Post', 'num_to_display'=>1))`
+* `echo wp_get_related_posts(array('num_to_display'=>1, 'no_rp_text'=>'No Related Posts Found'))`
+* `wp_related_posts(array('title'=>'Most Related Post', 'num_to_display'=>3, 'no_rp_text'=>'No Related Posts Found'))`
 
 = If it calculates related posts when a post is saved, won't a post only be related to older posts? =
 
@@ -62,6 +96,9 @@ Posts are considered related based on tags.  This may be extended in the future,
 but I wanted to keep the queries as clean as possible.
 
 == Changelog ==
+
+= 0.3.2 =
+* Added the `[relatedPosts]` shortcode as another way to add a list of related posts to a post or page
 
 = 0.3.1 =
 * Added some more options for where to display the related posts.
