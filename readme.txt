@@ -56,7 +56,7 @@ Settings -> Related Posts.  Alternatively you can use the shortcode
 [relatedPosts] or the helper functions wp_get_related_posts() and
 wp_related_posts() in your theme files.
 
-= How exactly do you use the `[relatedPosts]` shortcode? =
+= How exactly do you use the [[relatedPosts]] shortcode? =
 
 To use the default settings (from Settings -> Related Posts) you just need to
 add `[relatedPosts]` to your post or page where you want to list to be.  You can
