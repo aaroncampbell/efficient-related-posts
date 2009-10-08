@@ -56,7 +56,7 @@ Settings -> Related Posts.  Alternatively you can use the shortcode
 [relatedPosts] or the helper functions wp_get_related_posts() and
 wp_related_posts() in your theme files.
 
-= How exactly do you use the [relatedPosts] shortcode? =
+= How exactly do you use the `[relatedPosts]` shortcode? =
 
 To use the default settings (from Settings -> Related Posts) you just need to
 add `[relatedPosts]` to your post or page where you want to list to be.  You can
@@ -109,7 +109,7 @@ but I wanted to keep the queries as clean as possible.
 * Added an action to fix all permalinks if the structure is updated.
 
 = 0.2.7 =
-* Replaced esc_html with wp_specialchars for those still on 2.7.x
+* Replaced `esc_html` with `wp_specialchars` for those still on 2.7.x
 
 = 0.2.6 =
 * Categories to ignore are now chosen using checkboxes!  Much better than finding category IDs and making a comma separated list of them
