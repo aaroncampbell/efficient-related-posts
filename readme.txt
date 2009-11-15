@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal%4
 Tags: related posts, posts, related, seo
 Requires at least: 2.7
 Tested up to: 2.8.1
-Stable tag: 0.3.2
+Stable tag: 0.3.3
 
 A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts. Requires PHP5.
 
@@ -37,8 +37,6 @@ saved, manually adding a tag through the database will have no effect on the
 related posts, although I recommend not doing that anyway.
 
 Requires PHP5.
-
-You may also be interested in <a href="http://wpinformer.com">WordPress tips and tricks at WordPress Informer</a> or general <a href="http://webdevnews.net">Web Developer News</a>
 
 == Installation ==
 
@@ -96,6 +94,11 @@ Posts are considered related based on tags.  This may be extended in the future,
 but I wanted to keep the queries as clean as possible.
 
 == Changelog ==
+
+= 0.3.3 =
+* Added links to the support forums
+* Updated links to link to new plugin homepage location: http://xavisys.com/wordpress-plugins/efficient-related-posts/
+* Updated the system that shows changes when you're prompted to update
 
 = 0.3.2 =
 * Added the `[relatedPosts]` shortcode as another way to add a list of related posts to a post or page

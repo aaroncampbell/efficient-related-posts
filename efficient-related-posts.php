@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: Efficient Related Posts
- * Plugin URI: http://xavisys.com/2009/06/efficient-related-posts/
+ * Plugin URI: http://xavisys.com/wordpress-plugins/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.3.2
+ * Version: 0.3.3
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
  * Text Domain: efficient_related_posts
@@ -103,6 +103,7 @@ class efficientRelatedPosts {
 ?>
 		<div class="wrap">
 			<h2><?php _e('Efficient Related Posts', 'efficient_related_posts') ?></h2>
+			<?php echo $this->getSupportForumLink(); ?>
 			<h3><?php _e('General Settings', 'efficient_related_posts') ?></h3>
 			<form action="options.php" method="post">
 				<?php settings_fields( 'erp-options' ); ?>
@@ -507,17 +508,21 @@ QUERY;
 		$this->_settings['num_to_display'] = intval($this->_settings['num_to_display']);
 	}
 
-	public function addSettingLink( $links, $file ){
-		if ( empty($this->_pluginBasename) ) {
-			$this->_pluginBasename = plugin_basename(__FILE__);
-		}
-
-		if ( $file == $this->_pluginBasename ) {
-			// Add settings link to our plugin
+	public function addPluginPageLinks( $links, $file ){
+		if ( $file == plugin_basename(__FILE__) ) {
+			// Add Widget Page link to our plugin
 			$link = '<a href="options-general.php?page=efficientRelatedPosts">' . __('Settings', 'efficient_related_posts') . '</a>';
+			array_unshift( $links, $link );
+
+			// Add Support Forum link to our plugin
+			$link = $this->getSupportForumLink();
 			array_unshift( $links, $link );
 		}
 		return $links;
+	}
+
+	public function getSupportForumLink() {
+		return '<a href="http://xavisys.com/support/forum/efficient-related-posts/">' . __('Support Forum', 'efficient_related_posts') . '</a>';
 	}
 
 	public function fixPermalinks(){
@@ -553,12 +558,23 @@ QUERY;
 	}
 
 	public function _changelog ($pluginData, $newPluginData) {
-		$url = "{$this->_reposUrl}/{$newPluginData->slug}/tags/{$newPluginData->new_version}/upgrade.html";
-		$response = wp_remote_get ( $url );
-		$code = (int) wp_remote_retrieve_response_code ( $response );
-		if ( $code == 200 ) {
-			echo wp_remote_retrieve_body ( $response );
+		require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
+
+		$plugin = plugins_api( 'plugin_information', array( 'slug' => $newPluginData->slug ) );
+
+		if ( !$plugin || is_wp_error( $plugin ) || empty( $plugin->sections['changelog'] ) ) {
+			return;
 		}
+
+		$changes = $plugin->sections['changelog'];
+
+		$pos = strpos( $changes, '<h4>' . $pluginData['Version'] );
+		$changes = trim( substr( $changes, 0, $pos ) );
+		$replace = array(
+			'<ul>'	=> '<ul style="list-style: disc inside; padding-left: 15px; font-weight: normal;">',
+			'<h4>'	=> '<h4 style="margin-bottom:0;">',
+		);
+		echo str_replace( array_keys($replace), $replace, $changes );
 	}
 
     /**
@@ -654,7 +670,7 @@ add_action( 'admin_menu', array( $efficientRelatedPosts, 'admin_menu' ) );
 add_action( 'admin_init', array( $efficientRelatedPosts, 'processPosts' ) );
 add_action( 'admin_init', array( $efficientRelatedPosts, 'registerOptions' ) );
 add_action( 'permalink_structure_changed', array( $efficientRelatedPosts, 'fixPermalinks' ) );
-add_filter( 'plugin_action_links', array( $efficientRelatedPosts, 'addSettingLink' ), 10, 2 );
+add_filter( 'plugin_action_links', array( $efficientRelatedPosts, 'addPluginPageLinks' ), 10, 2 );
 add_shortcode('relatedPosts', array($efficientRelatedPosts, 'handleShortcodes'));
 register_activation_hook( __FILE__, array( $efficientRelatedPosts, 'activate' ) );
 
