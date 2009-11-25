@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal%4
 Tags: related posts, posts, related, seo
 Requires at least: 2.7
 Tested up to: 2.8.1
-Stable tag: 0.3.3
+Stable tag: 0.3.4
 
 A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts. Requires PHP5.
 
@@ -94,6 +94,11 @@ Posts are considered related based on tags.  This may be extended in the future,
 but I wanted to keep the queries as clean as possible.
 
 == Changelog ==
+
+= 0.3.4 =
+* Updated the plugin to use the new Xavisys Plugin Framework
+* Added a Xavisys News feed to the dashboard (can be hidden using Screen Options)
+* Original prep to internationalize the plugin (hopefully completely translatable in the next version)
 
 = 0.3.3 =
 * Added links to the support forums

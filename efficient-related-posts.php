@@ -3,10 +3,10 @@
  * Plugin Name: Efficient Related Posts
  * Plugin URI: http://xavisys.com/wordpress-plugins/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.3.3
+ * Version: 0.3.4
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
- * Text Domain: efficient_related_posts
+ * Text Domain: efficient-related-posts
  */
 
 /**
@@ -14,42 +14,203 @@
  * It helps us avoid name collisions
  * http://codex.wordpress.org/Writing_a_Plugin#Avoiding_Function_Name_Collisions
  */
-class efficientRelatedPosts {
+require_once('xavisys-plugin-framework.php');
+class efficientRelatedPosts extends XavisysPlugin {
 	/**
-	 * Static property to hold our singleton instance
+	 * @var efficientRelatedPosts - Static property to hold our singleton instance
 	 */
 	static $instance = false;
-
-	/**
-	 * @var array Plugin settings
-	 */
-	private $_settings;
 
 	/**
 	 * @var array Posts Processed
 	 */
 	private $_processedPosts = array();
 
-	/**
-	 * This is our constructor, which is private to force the use of getInstance()
-	 * @return void
-	 */
-	private function __construct() {
-		$this->_getSettings();
-		if ( $this->_settings['auto_insert'] != 'no' ) {
+	protected function _init() {
+		$this->_hook = 'efficientRelatedPosts';
+		$this->_file = plugin_basename( __FILE__ );
+		$this->_pageTitle = __( 'Efficient Related Posts', $this->_slug );
+		$this->_menuTitle = __( 'Related Posts', $this->_slug );
+		$this->_accessLevel = 'manage_options';
+		$this->_optionGroup = 'erp-options';
+		$this->_optionNames = array('erp');
+		$this->_optionCallbacks = array();
+		$this->_slug = 'efficient-related-posts';
+		$this->_paypalButtonId = '9996714';
+
+		/**
+		 * Add filters and actions
+		 */
+		add_filter( 'init', array( $this, 'init_locale' ) );
+		add_action( 'save_post', array( $this, 'processPost' ) );
+		add_action( 'admin_init', array( $this, 'processPosts' ) );
+		add_action( 'permalink_structure_changed', array( $this, 'fixPermalinks' ) );
+		add_shortcode('relatedPosts', array($this, 'handleShortcodes'));
+		register_activation_hook( __FILE__, array( $this, 'activate' ) );
+
+		if ( $this->_settings['erp']['auto_insert'] != 'no' ) {
 			add_filter('the_content', array( $this, 'filterPostContent'), 99);
 		}
-		if ( $this->_settings['rss'] == 'yes' ) {
+		if ( $this->_settings['erp']['rss'] == 'yes' ) {
 			add_filter('the_content', array( $this, 'filterPostContentRSS'), 1);
 		}
-		/**
-		 * Add update messages that can be attached to the CURRENT release (not
-		 * this one), but only for 2.8+
-		 */
-		global $wp_version;
-		if ( version_compare('2.8', $wp_version, '<=') ) {
-			add_action ( 'in_plugin_update_message-'.plugin_basename ( __FILE__ ) , array ( $this , '_changelog' ), null, 2 );
+
+		add_filter( $this->_slug .'-opt-erp', array( $this, 'filterSettings' ) );
+	}
+
+	public function init_locale() {
+		$lang_dir = basename(dirname(__FILE__)) . '/languages';
+		load_plugin_textdomain( $this->_slug, 'wp-content/plugins/' . $lang_dir, $lang_dir);
+	}
+
+	public function addOptionsMetaBoxes() {
+		add_meta_box( $this->_slug . '-general-settings', __('General Settings', $this->_slug), array($this, 'generalSettingsMetaBox'), 'xavisys-' . $this->_slug, 'main');
+		add_meta_box( $this->_slug . '-process-posts', __('Build Relations', $this->_slug), array($this, 'processPostsMetaBox'), 'xavisys-' . $this->_slug, 'main-2');
+		if (get_option('erp-processedPosts')) {
+			add_meta_box( $this->_slug . '-continue-processing-posts', __('Continue Processing Posts/Pages', $this->_slug), array($this, 'continueProcessingPostsMetaBox'), 'xavisys-' . $this->_slug, 'main-2');
 		}
+		//add_meta_box('test1-id', 'test 1 title', array($this, 'metaBoxTest'), 'xavisys-' . $this->_slug, 'main-2');
+	}
+
+	public function processPostsMetaBox() {
+		?>
+			<form action="" method="post">
+				<p>
+					<?php _e('Use this to build relationships for all posts.', $this->_slug); ?>
+				</p>
+				<p class="error"><?php _e('Warning, this could take a very long time (in test it took about 1 hour for 2000 posts).', $this->_slug); ?></p>
+				<?php wp_nonce_field('erp-processPosts'); ?>
+				<table class="form-table">
+					<tr valign="top">
+						<th scope="row">
+							<?php _e('Posts/Pages to process:', $this->_slug) ?>
+						</th>
+						<td>
+							<input type="checkbox" name="erp[drafts]" value="true" id="erp-process-drafts" />
+							<label for="erp-process-drafts"><?php _e('Process drafts', $this->_slug); ?></label><br />
+							<input type="checkbox" name="erp[pending]" value="true" id="erp-process-pending" />
+							<label for="erp-process-pending"><?php _e('Process pending posts', $this->_slug); ?></label><br />
+							<input type="checkbox" name="erp[scheduled]" value="true" id="erp-process-scheduled" />
+							<label for="erp-process-scheduled"><?php _e('Process scheduled posts', $this->_slug); ?></label>
+						</td>
+					</tr>
+				</table>
+				<p class="submit">
+					<input type="submit" name="process_posts" value="<?php esc_attr_e('Process Posts/Pages', $this->_slug); ?>" />
+				</p>
+			</form>
+		<?php
+	}
+
+	public function continueProcessingPostsMetaBox() {
+		?>
+			<form action="" method="post">
+				<p>
+					<?php _e("The last processing didn't complete.  If you want to continue where it left off, use this:"); ?>
+				</p>
+				<?php wp_nonce_field('erp-processPosts'); ?>
+				<input type="hidden" name="erp[drafts]" value="<?php echo $_POST['erp']['drafts']; ?>" />
+				<input type="hidden" name="erp[pending]" value="<?php echo $_POST['erp']['pending']; ?>" />
+				<input type="hidden" name="erp[scheduled]" value="<?php echo $_POST['erp']['scheduled']; ?>" />
+				<input type="hidden" name="erp[continue]" value="true" />
+				<p class="submit">
+					<input type="submit" name="process_posts" value="<?php _e('Continue Processing'); ?>" />
+				</p>
+			</form>
+		<?php
+	}
+
+	public function generalSettingsMetaBox() {
+		?>
+				<table class="form-table">
+					<tr valign="top">
+						<th scope="row">
+							<label for="erp_title"><?php _e("Title:", $this->_slug); ?></label>
+						</th>
+						<td>
+							<input id="erp_title" name="erp[title]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['erp']['title']); ?>" size="40" />
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row">
+							<label for="erp_no_rp_text"><?php _e("Display Text When No Related Posts Found:", $this->_slug); ?></label>
+						</th>
+						<td>
+							<input id="erp_no_rp_text" name="erp[no_rp_text]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['erp']['no_rp_text']); ?>" size="40" />
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row">
+							<label for="erp_ignore_cats"><?php _e('Ignore Categories:', $this->_slug); ?></label>
+						</th>
+						<td id="categorydiv">
+							<div id="categories-all" class="tabs-panel">
+								<ul id="categorychecklist" class="list:category categorychecklist form-no-clear">
+<?php
+							$erpWalker = new Walker_Category_Checklist_ERP();
+							wp_category_checklist(0, 0, $this->_settings['erp']['ignore_cats'], array(), $erpWalker);
+?>
+								</ul>
+							</div>
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row">
+							<label for="erp_max_relations_stored"><?php _e('Max Related Posts to Store:', $this->_slug); ?></label>
+						</th>
+						<td>
+							<input id="erp_max_relations_stored" name="erp[max_relations_stored]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['erp']['max_relations_stored']); ?>" size="40" />
+							<span class="setting-description"><?php _e("Max number to store.  You can't display more than this.", $this->_slug); ?></span>
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row">
+							<label for="erp_num_to_display"><?php _e('Number of Related Posts to Display:', $this->_slug); ?></label>
+						</th>
+						<td>
+							<input id="erp_num_to_display" name="erp[num_to_display]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['erp']['num_to_display']); ?>" size="40" />
+							<span class="setting-description"><?php _e('The number of related posts to display if none is specified.', $this->_slug); ?></span>
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row">
+							<?php _e("Other Setting:", $this->_slug);?>
+						</th>
+						<td>
+							<input name="erp[auto_insert]" id="erp_auto_insert_no" type="radio" value="no"<?php checked('no', $this->_settings['erp']['auto_insert']) ?>>
+							<label for="erp_auto_insert_no">
+								<?php _e("Do Not Auto Insert Into Posts", $this->_slug);?>
+							</label>
+							<br />
+							<input name="erp[auto_insert]" id="erp_auto_insert_all" type="radio" value="all"<?php checked('all', $this->_settings['erp']['auto_insert']) ?>>
+							<label for="erp_auto_insert_all">
+								<?php _e("Auto Insert Everywhere (Posts and Pages)", $this->_slug);?>
+							</label>
+							<br />
+							<input name="erp[auto_insert]" id="erp_auto_insert_single-all" type="radio" value="single-all"<?php checked('single-all', $this->_settings['erp']['auto_insert']) ?>>
+							<label for="erp_auto_insert_single-all">
+								<?php _e("Auto Insert Into Only Single Posts and Pages", $this->_slug);?>
+							</label>
+							<br />
+							<input name="erp[auto_insert]" id="erp_auto_insert_posts" type="radio" value="posts"<?php checked('posts', $this->_settings['erp']['auto_insert']) ?>>
+							<label for="erp_auto_insert_posts">
+								<?php _e("Auto Insert Into Posts", $this->_slug);?>
+							</label>
+							<br />
+							<input name="erp[auto_insert]" id="erp_auto_insert_single" type="radio" value="single"<?php checked('single', $this->_settings['erp']['auto_insert']) ?>>
+							<label for="erp_auto_insert_single">
+								<?php _e("Auto Insert Into Only Single Posts", $this->_slug);?>
+							</label>
+							<br />
+							<br />
+							<input name="erp[rss]" id="erp_rss" type="checkbox" value="yes"<?php checked('yes', $this->_settings['erp']['rss']) ?>>
+							<label for="erp_rss">
+								<?php _e("Related Posts for RSS", $this->_slug);?>
+							</label>
+						</td>
+					</tr>
+				</table>
+		<?php
 	}
 
 	/**
@@ -60,19 +221,6 @@ class efficientRelatedPosts {
 			self::$instance = new self;
 		}
 		return self::$instance;
-	}
-
-	/**
-	 * This adds the options page for this plugin to the Options page
-	 *
-	 * @access public
-	 */
-	public function admin_menu() {
-		add_options_page(__('Efficient Related Posts', 'efficient_related_posts'), __('Related Posts', 'efficient_related_posts'), 'manage_options', 'efficientRelatedPosts', array($this, 'options'));
-	}
-
-	public function registerOptions() {
-		register_setting( 'erp-options', 'erp' );
 	}
 
 	public function processPosts() {
@@ -89,162 +237,89 @@ class efficientRelatedPosts {
 			$timetotal = $timeend-$timestart;
 			$r = ( function_exists('number_format_i18n') ) ? number_format_i18n($timetotal, 1) : number_format($timetotal, 1);
 
-			$notice = "Processed: " . implode(', ', $processed) . " in {$r} seconds";
+			$notice = sprintf(_n( 'Processed %d post.', 'Processed %d posts.', count($processed)), count($processed) );
+			$notice .= '<br />';
+			$notice .= sprintf(_n( 'Process took %s second.', 'Process took %s seconds.', $r), $r);
 			$notice = str_replace( "'", "\'", "<div class='updated'><p>$notice</p></div>" );
 			add_action('admin_notices', create_function( '', "echo '$notice';" ) );
 		}
 	}
 
-	/**
-	 * This is used to display the options page for this plugin
-	 */
-	public function options() {
-		$this->_getSettings();
-?>
-		<div class="wrap">
-			<h2><?php _e('Efficient Related Posts', 'efficient_related_posts') ?></h2>
-			<?php echo $this->getSupportForumLink(); ?>
-			<h3><?php _e('General Settings', 'efficient_related_posts') ?></h3>
-			<form action="options.php" method="post">
-				<?php settings_fields( 'erp-options' ); ?>
-				<table class="form-table">
-					<tr valign="top">
-						<th scope="row">
-							<label for="erp_title"><?php _e("Title:",'efficient_related_posts'); ?></label>
-						</th>
-						<td>
-							<input id="erp_title" name="erp[title]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['title']); ?>" size="40" />
-						</td>
-					</tr>
-					<tr valign="top">
-						<th scope="row">
-							<label for="erp_no_rp_text"><?php _e("Display Text When No Related Posts Found:",'efficient_related_posts'); ?></label>
-						</th>
-						<td>
-							<input id="erp_no_rp_text" name="erp[no_rp_text]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['no_rp_text']); ?>" size="40" />
-						</td>
-					</tr>
-					<tr valign="top">
-						<th scope="row">
-							<label for="erp_ignore_cats"><?php _e('Ignore Categories:', 'efficient_related_posts'); ?></label>
-						</th>
-						<td id="categorydiv">
-							<div id="categories-all" class="tabs-panel">
-								<ul id="categorychecklist" class="list:category categorychecklist form-no-clear">
-<?php
-							$erpWalker = new Walker_Category_Checklist_ERP();
-							wp_category_checklist(0, 0, $this->_settings['ignore_cats'], array(), $erpWalker);
-?>
-								</ul>
-							</div>
-						</td>
-					</tr>
-					<tr valign="top">
-						<th scope="row">
-							<label for="erp_max_relations_stored"><?php _e('Max Related Posts to Store:', 'efficient_related_posts'); ?></label>
-						</th>
-						<td>
-							<input id="erp_max_relations_stored" name="erp[max_relations_stored]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['max_relations_stored']); ?>" size="40" />
-							<span class="setting-description"><?php _e("Max number to store.  You can't display more than this.", 'efficient_related_posts'); ?></span>
-						</td>
-					</tr>
-					<tr valign="top">
-						<th scope="row">
-							<label for="erp_num_to_display"><?php _e('Number of Related Posts to Display:', 'efficient_related_posts'); ?></label>
-						</th>
-						<td>
-							<input id="erp_num_to_display" name="erp[num_to_display]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['num_to_display']); ?>" size="40" />
-							<span class="setting-description"><?php _e('The number of related posts to display if none is specified.', 'efficient_related_posts'); ?></span>
-						</td>
-					</tr>
-					<tr valign="top">
-						<th scope="row">
-							<?php _e("Other Setting:",'efficient_related_posts');?>
-						</th>
-						<td>
-							<input name="erp[auto_insert]" id="erp_auto_insert_no" type="radio" value="no"<?php checked('no', $this->_settings['auto_insert']) ?>>
-							<label for="erp_auto_insert_no">
-								<?php _e("Do Not Auto Insert Into Posts",'efficient_related_posts');?>
-							</label>
-							<br />
-							<input name="erp[auto_insert]" id="erp_auto_insert_all" type="radio" value="all"<?php checked('all', $this->_settings['auto_insert']) ?>>
-							<label for="erp_auto_insert_all">
-								<?php _e("Auto Insert Everywhere (Posts and Pages)",'efficient_related_posts');?>
-							</label>
-							<br />
-							<input name="erp[auto_insert]" id="erp_auto_insert_single-all" type="radio" value="single-all"<?php checked('single-all', $this->_settings['auto_insert']) ?>>
-							<label for="erp_auto_insert_single-all">
-								<?php _e("Auto Insert Into Only Single Posts and Pages",'efficient_related_posts');?>
-							</label>
-							<br />
-							<input name="erp[auto_insert]" id="erp_auto_insert_posts" type="radio" value="posts"<?php checked('posts', $this->_settings['auto_insert']) ?>>
-							<label for="erp_auto_insert_posts">
-								<?php _e("Auto Insert Into Posts",'efficient_related_posts');?>
-							</label>
-							<br />
-							<input name="erp[auto_insert]" id="erp_auto_insert_single" type="radio" value="single"<?php checked('single', $this->_settings['auto_insert']) ?>>
-							<label for="erp_auto_insert_single">
-								<?php _e("Auto Insert Into Only Single Posts",'efficient_related_posts');?>
-							</label>
-							<br />
-							<br />
-							<input name="erp[rss]" id="erp_rss" type="checkbox" value="yes"<?php checked('yes', $this->_settings['rss']) ?>>
-							<label for="erp_rss">
-								<?php _e("Related Posts for RSS",'efficient_related_posts');?>
-							</label>
-						</td>
-					</tr>
-				</table>
-				<p class="submit">
-					<input type="submit" name="Submit" value="<?php _e('Update Options &raquo;', 'efficient_related_posts'); ?>" />
-				</p>
-			</form>
-			<h3 style="margin:2em 0 .5em;"><?php _e('Build Relations', 'efficient_related_posts') ?></h3>
-			<p style="margin:0;">
-				<?php _e('Use this to build relationships for all posts.', 'efficient_related_posts'); ?>
-			</p>
-			<p class="error"><?php _e('Warning, this could take a very long time (in test it took about 1 hour for 2000 posts).', 'efficient_related_posts'); ?></p>
-			<form action="" method="post">
-				<?php wp_nonce_field('erp-processPosts'); ?>
-				<table class="form-table">
-					<tr valign="top">
-						<th scope="row">
-							<?php _e('Posts/Pages to process:', 'efficient_related_posts') ?>
-						</th>
-						<td>
-							<input type="checkbox" name="erp[drafts]" value="true" id="erp-process-drafts" />
-							<label for="erp-process-drafts"><?php _e('Process drafts', 'efficient_related_posts'); ?></label><br />
-							<input type="checkbox" name="erp[pending]" value="true" id="erp-process-pending" />
-							<label for="erp-process-pending"><?php _e('Process pending posts', 'efficient_related_posts'); ?></label><br />
-							<input type="checkbox" name="erp[scheduled]" value="true" id="erp-process-scheduled" />
-							<label for="erp-process-scheduled"><?php _e('Process scheduled posts', 'efficient_related_posts'); ?></label>
-						</td>
-					</tr>
-				</table>
-				<p class="submit">
-					<input type="submit" name="process_posts" value="<?php _e('Process Posts/Pages', 'efficient_related_posts'); ?>" />
-				</p>
-			</form>
-<?php
-		if (get_option('erp-processedPosts')) {
-?>
-			<h3 style="margin:2em 0 .5em;"><?php _e('Continue Processing Posts/Pages'); ?></h3>
-			<p><?php _e("The last processing didn't complete.  If you want to continue where it left off, use this:"); ?></p>
-			<form action="" method="post">
-				<?php wp_nonce_field('erp-processPosts'); ?>
-				<input type="hidden" name="erp[drafts]" value="<?php echo $_POST['erp']['drafts']; ?>" />
-				<input type="hidden" name="erp[pending]" value="<?php echo $_POST['erp']['pending']; ?>" />
-				<input type="hidden" name="erp[scheduled]" value="<?php echo $_POST['erp']['scheduled']; ?>" />
-				<input type="hidden" name="erp[continue]" value="true" />
-				<p class="submit">
-					<input type="submit" name="process_posts" value="<?php _e('Continue Processing'); ?>" />
-				</p>
-			</form>
-<?php
+	public function filterPostContent($content) {
+		// We don't want to filter if this is a feed or if settings tell us not to
+		if (
+				(
+					$this->_settings['erp']['auto_insert'] == 'all' ||
+					( $this->_settings['erp']['auto_insert'] == 'posts' && !is_page() ) ||
+					( $this->_settings['erp']['auto_insert'] == 'single-all' && is_singular() && !is_attachment() && !is_home() ) ||
+					( $this->_settings['erp']['auto_insert'] == 'single' && is_single() )
+				)
+				&& !is_feed()
+			) {
+			$content .= $this->getRelatedPosts();
 		}
-?>
-		</div>
-<?php
+
+		return $content;
+	}
+
+	public function filterPostContentRSS($content) {
+		if ( $this->_settings['erp']['rss'] == 'yes' && is_feed() ) {
+			$content .= $this->getRelatedPosts();
+		}
+
+		return $content;
+	}
+
+	/**
+	 * @param [optional]$args Array of arguments containing any of the following:
+	 * 	[num_to_display]	- Number of Posts to display
+	 * 	[no_rp_text]		- Text to display if there are no related posts
+	 * 	[title]				- Title for related posts list, empty for none
+	 */
+	public function getRelatedPosts( $args = array() ) {
+		global $post;
+		$output = '';
+
+		$settings = wp_parse_args($args, $this->_settings['erp']);
+
+		$relatedPosts = get_post_meta($post->ID, '_efficient_related_posts', true);
+
+		if ( empty($relatedPosts) || $settings['num_to_display'] == 0 ){
+			$output .= "<li>{$settings['no_rp_text']}</li>";
+		} else {
+			$relatedPosts = array_slice($relatedPosts, 0, $settings['num_to_display']);
+			foreach ( $relatedPosts as $p ) {
+				/**
+				 * Handle IDs for backwards compat
+				 */
+				if ( ctype_digit($p) ) {
+					$related_post = get_post($p);
+					$p = array(
+						'ID'			=> $related_post->ID,
+						'post_title'	=> $related_post->post_title,
+						'permalink'		=> get_permalink($related_post->ID)
+					);
+				}
+				$link = "<a href='{$p['permalink']}' title='" . attribute_escape(wptexturize($p['post_title']))."'>".wptexturize($p['post_title']).'</a>';
+				$output .= "<li>{$link}</li>";
+			}
+		}
+
+		$output = "<ul class='related_post'>{$output}</ul>";
+
+		if ( !empty($settings['title']) ) {
+			$output = "<h3 class='related_post_title'>{$settings['title']}</h3>{$output}";
+		}
+
+		return $output;
+	}
+
+
+	/**
+	 * @param [optional]$args See efficientRelatedPosts::getRelatedPosts
+	 */
+	public function relatedPosts( $args = array() ) {
+		echo $this->getRelatedPosts($args);
 	}
 
 	private function _getPostIDs(&$p, $key) {
@@ -313,11 +388,11 @@ QUERY;
 
 			if ($related_posts) {
 				foreach ($related_posts as $related_post ){
-					$overlap = array_intersect(wp_get_post_categories($related_post->ID), $this->_settings['ignore_cats']);
+					$overlap = array_intersect(wp_get_post_categories($related_post->ID), $this->_settings['erp']['ignore_cats']);
 
 					$allRelatedPosts[] = $related_post;
 
-					if ( empty($overlap) && count($relatedPostsToStore) < $this->_settings['max_relations_stored'] ) {
+					if ( empty($overlap) && count($relatedPostsToStore) < $this->_settings['erp']['max_relations_stored'] ) {
 						$threshold = $related_post->matches;
 						//unset($related_post->matches);
 						$related_post->permalink = get_permalink($related_post->ID);
@@ -412,119 +487,6 @@ QUERY;
 		return $postIDs;
 	}
 
-	/**
-	 * @param [optional]$args Array of arguments containing any of the following:
-	 * 	[num_to_display]	- Number of Posts to display
-	 * 	[no_rp_text]		- Text to display if there are no related posts
-	 * 	[title]				- Title for related posts list, empty for none
-	 */
-	public function getRelatedPosts( $args = array() ) {
-		global $post;
-		$output = '';
-
-		$settings = wp_parse_args($args, $this->_settings);
-
-		$relatedPosts = get_post_meta($post->ID, '_efficient_related_posts', true);
-
-		if ( empty($relatedPosts) || $settings['num_to_display'] == 0 ){
-			$output .= "<li>{$settings['no_rp_text']}</li>";
-		} else {
-			$relatedPosts = array_slice($relatedPosts, 0, $settings['num_to_display']);
-			foreach ( $relatedPosts as $p ) {
-				/**
-				 * Handle IDs for backwards compat
-				 */
-				if ( ctype_digit($p) ) {
-					$related_post = get_post($p);
-					$p = array(
-						'ID'			=> $related_post->ID,
-						'post_title'	=> $related_post->post_title,
-						'permalink'		=> get_permalink($related_post->ID)
-					);
-				}
-				$link = "<a href='{$p['permalink']}' title='" . attribute_escape(wptexturize($p['post_title']))."'>".wptexturize($p['post_title']).'</a>';
-				$output .= "<li>{$link}</li>";
-			}
-		}
-
-		$output = "<ul class='related_post'>{$output}</ul>";
-
-		if ( !empty($settings['title']) ) {
-			$output = "<h3 class='related_post_title'>{$settings['title']}</h3>{$output}";
-		}
-
-		return $output;
-	}
-
-	/**
-	 * @param [optional]$args See efficientRelatedPosts::getRelatedPosts
-	 */
-	public function relatedPosts( $args = array() ) {
-		echo $this->getRelatedPosts($args);
-	}
-
-	public function filterPostContent($content) {
-		// We don't want to filter if this is a feed or if settings tell us not to
-		if (
-				(
-					$this->_settings['auto_insert'] == 'all' ||
-					( $this->_settings['auto_insert'] == 'posts' && !is_page() ) ||
-					( $this->_settings['auto_insert'] == 'single-all' && is_singular() && !is_attachment() && !is_home() ) ||
-					( $this->_settings['auto_insert'] == 'single' && is_single() )
-				)
-				&& !is_feed()
-			) {
-			$content .= $this->getRelatedPosts();
-		}
-
-		return $content;
-	}
-
-	public function filterPostContentRSS($content) {
-		if ( $this->_settings['rss'] == 'yes' && is_feed() ) {
-			$content .= $this->getRelatedPosts();
-		}
-
-		return $content;
-	}
-
-	private function _getSettings() {
-		$defaults = array(
-			'title'					=> __("Related Posts:",'efficient_related_posts'),
-			'no_rp_text'			=> __("No Related Posts",'efficient_related_posts'),
-			'ignore_cats'			=> array(),
-			'max_relations_stored'	=> 10,
-			'num_to_display'		=> 5,
-			'auto_insert'			=> 'no',
-			'rss'					=> 'no'
-		);
-		$this->_settings = get_option('erp');
-		$this->_settings = wp_parse_args($this->_settings, $defaults);
-
-		if ( !is_array($this->_settings['ignore_cats']) ) {
-			$this->_settings['ignore_cats'] = preg_split('/\s*,\s*/', trim($this->_settings['ignore_cats']), -1, PREG_SPLIT_NO_EMPTY);
-		}
-		$this->_settings['max_relations_stored'] = intval($this->_settings['max_relations_stored']);
-		$this->_settings['num_to_display'] = intval($this->_settings['num_to_display']);
-	}
-
-	public function addPluginPageLinks( $links, $file ){
-		if ( $file == plugin_basename(__FILE__) ) {
-			// Add Widget Page link to our plugin
-			$link = '<a href="options-general.php?page=efficientRelatedPosts">' . __('Settings', 'efficient_related_posts') . '</a>';
-			array_unshift( $links, $link );
-
-			// Add Support Forum link to our plugin
-			$link = $this->getSupportForumLink();
-			array_unshift( $links, $link );
-		}
-		return $links;
-	}
-
-	public function getSupportForumLink() {
-		return '<a href="http://xavisys.com/support/forum/efficient-related-posts/">' . __('Support Forum', 'efficient_related_posts') . '</a>';
-	}
-
 	public function fixPermalinks(){
 		global $wpdb;
 
@@ -557,26 +519,6 @@ QUERY;
 		$this->processAllPosts();
 	}
 
-	public function _changelog ($pluginData, $newPluginData) {
-		require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
-
-		$plugin = plugins_api( 'plugin_information', array( 'slug' => $newPluginData->slug ) );
-
-		if ( !$plugin || is_wp_error( $plugin ) || empty( $plugin->sections['changelog'] ) ) {
-			return;
-		}
-
-		$changes = $plugin->sections['changelog'];
-
-		$pos = strpos( $changes, '<h4>' . $pluginData['Version'] );
-		$changes = trim( substr( $changes, 0, $pos ) );
-		$replace = array(
-			'<ul>'	=> '<ul style="list-style: disc inside; padding-left: 15px; font-weight: normal;">',
-			'<h4>'	=> '<h4 style="margin-bottom:0;">',
-		);
-		echo str_replace( array_keys($replace), $replace, $changes );
-	}
-
     /**
 	 * Replace our shortCode with the list of related posts
 	 *
@@ -588,8 +530,29 @@ QUERY;
 		if ( !empty($content) && empty($attr['title']) ) {
 			$attr['title'] = $content;
 		}
-        $attr = shortcode_atts($this->_settings, $attr);
+        $attr = shortcode_atts($this->_settings['erp'], $attr);
 		return $this->getRelatedPosts($attr);
+	}
+
+	public function filterSettings($settings) {
+		$defaults = array(
+			'title'					=> __("Related Posts:", $this->_slug),
+			'no_rp_text'			=> __("No Related Posts", $this->_slug),
+			'ignore_cats'			=> array(),
+			'max_relations_stored'	=> 10,
+			'num_to_display'		=> 5,
+			'auto_insert'			=> 'no',
+			'rss'					=> 'no'
+		);
+		$settings = wp_parse_args($settings, $defaults);
+
+		if ( !is_array($settings['ignore_cats']) ) {
+			$settings['ignore_cats'] = preg_split('/\s*,\s*/', trim($settings['ignore_cats']), -1, PREG_SPLIT_NO_EMPTY);
+		}
+		$settings['max_relations_stored'] = intval($settings['max_relations_stored']);
+		$settings['num_to_display'] = intval($settings['num_to_display']);
+
+		return $settings;
 	}
 }
 /**
@@ -661,28 +624,3 @@ if ( !function_exists('get_memory_limit') ) {
 
 // Instantiate our class
 $efficientRelatedPosts = efficientRelatedPosts::getInstance();
-
-/**
- * Add filters and actions
- */
-add_action( 'save_post', array( $efficientRelatedPosts, 'processPost' ) );
-add_action( 'admin_menu', array( $efficientRelatedPosts, 'admin_menu' ) );
-add_action( 'admin_init', array( $efficientRelatedPosts, 'processPosts' ) );
-add_action( 'admin_init', array( $efficientRelatedPosts, 'registerOptions' ) );
-add_action( 'permalink_structure_changed', array( $efficientRelatedPosts, 'fixPermalinks' ) );
-add_filter( 'plugin_action_links', array( $efficientRelatedPosts, 'addPluginPageLinks' ), 10, 2 );
-add_shortcode('relatedPosts', array($efficientRelatedPosts, 'handleShortcodes'));
-register_activation_hook( __FILE__, array( $efficientRelatedPosts, 'activate' ) );
-
-/**
- * For use with debugging
- * @todo Remove this
- */
-if ( !function_exists('dump') ) {
-	function dump($v, $title = '') {
-		if (!empty($title)) {
-			echo '<h4>' . htmlentities($title) . '</h4>';
-		}
-		echo '<pre>' . htmlentities(print_r($v, true)) . '</pre>';
-	}
-}
