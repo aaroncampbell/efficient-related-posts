@@ -1,10 +1,10 @@
 === Efficient Related Posts ===
 Contributors: aaroncampbell
-Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal%40xavisys%2ecom&item_name=Efficient%20Related%20Posts&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9996714
 Tags: related posts, posts, related, seo
 Requires at least: 2.7
-Tested up to: 2.8.1
-Stable tag: 0.3.3
+Tested up to: 2.9
+Stable tag: 0.3.5
 
 A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts. Requires PHP5.
 
@@ -94,6 +94,15 @@ Posts are considered related based on tags.  This may be extended in the future,
 but I wanted to keep the queries as clean as possible.
 
 == Changelog ==
+
+= 0.3.5 =
+* Update to the newest version of the Xavisys WordPress Plugin Framework
+* Fixed an issue with the auto insert
+
+= 0.3.4 =
+* Updated the plugin to use the new Xavisys Plugin Framework
+* Added a Xavisys News feed to the dashboard (can be hidden using Screen Options)
+* Original prep to internationalize the plugin (hopefully completely translatable in the next version)
 
 = 0.3.3 =
 * Added links to the support forums
