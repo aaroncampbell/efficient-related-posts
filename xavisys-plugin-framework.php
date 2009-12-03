@@ -1,6 +1,6 @@
 <?php
 /**
- * @todo Host the icon and logo on a CDN
+ * Version: 1.0.1
  */
 
 if (!class_exists('XavisysPlugin')) {
@@ -74,6 +74,10 @@ if (!class_exists('XavisysPlugin')) {
 				$this->_init();
 			}
 			$this->_getSettings();
+			if ( is_callable( array($this, '_postSettingsInit') ) ) {
+				$this->_postSettingsInit();
+			}
+			add_filter( 'init', array( $this, 'init_locale' ) );
 			add_action( 'admin_init', array( $this, 'registerOptions' ) );
 			add_filter( 'plugin_action_links', array( $this, 'addPluginPageLinks' ), 10, 2 );
 			add_action( 'admin_menu', array( $this, 'registerOptionsPage' ) );
@@ -98,6 +102,11 @@ if (!class_exists('XavisysPlugin')) {
 		 * Function to instantiate our class and make it a singleton
 		 */
 		abstract public static function getInstance();
+
+		public function init_locale() {
+			$lang_dir = basename(dirname(__FILE__)) . '/languages';
+			load_plugin_textdomain( $this->_slug, 'wp-content/plugins/' . $lang_dir, $lang_dir);
+		}
 
 		protected function _getSettings() {
 			foreach ( $this->_optionNames as $opt ) {

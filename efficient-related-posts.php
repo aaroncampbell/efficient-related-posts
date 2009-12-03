@@ -3,7 +3,7 @@
  * Plugin Name: Efficient Related Posts
  * Plugin URI: http://xavisys.com/wordpress-plugins/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.3.4
+ * Version: 0.3.5
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
  * Text Domain: efficient-related-posts
@@ -41,26 +41,21 @@ class efficientRelatedPosts extends XavisysPlugin {
 		/**
 		 * Add filters and actions
 		 */
-		add_filter( 'init', array( $this, 'init_locale' ) );
 		add_action( 'save_post', array( $this, 'processPost' ) );
 		add_action( 'admin_init', array( $this, 'processPosts' ) );
 		add_action( 'permalink_structure_changed', array( $this, 'fixPermalinks' ) );
 		add_shortcode('relatedPosts', array($this, 'handleShortcodes'));
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
+		add_filter( $this->_slug .'-opt-erp', array( $this, 'filterSettings' ) );
+	}
 
+	protected function _postSettingsInit() {
 		if ( $this->_settings['erp']['auto_insert'] != 'no' ) {
 			add_filter('the_content', array( $this, 'filterPostContent'), 99);
 		}
 		if ( $this->_settings['erp']['rss'] == 'yes' ) {
 			add_filter('the_content', array( $this, 'filterPostContentRSS'), 1);
 		}
-
-		add_filter( $this->_slug .'-opt-erp', array( $this, 'filterSettings' ) );
-	}
-
-	public function init_locale() {
-		$lang_dir = basename(dirname(__FILE__)) . '/languages';
-		load_plugin_textdomain( $this->_slug, 'wp-content/plugins/' . $lang_dir, $lang_dir);
 	}
 
 	public function addOptionsMetaBoxes() {
@@ -69,7 +64,6 @@ class efficientRelatedPosts extends XavisysPlugin {
 		if (get_option('erp-processedPosts')) {
 			add_meta_box( $this->_slug . '-continue-processing-posts', __('Continue Processing Posts/Pages', $this->_slug), array($this, 'continueProcessingPostsMetaBox'), 'xavisys-' . $this->_slug, 'main-2');
 		}
-		//add_meta_box('test1-id', 'test 1 title', array($this, 'metaBoxTest'), 'xavisys-' . $this->_slug, 'main-2');
 	}
 
 	public function processPostsMetaBox() {
