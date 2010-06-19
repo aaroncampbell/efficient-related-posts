@@ -3,8 +3,8 @@ Contributors: aaroncampbell
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9996714
 Tags: related posts, posts, related, seo
 Requires at least: 2.7
-Tested up to: 2.9
-Stable tag: 0.3.5
+Tested up to: 3.0
+Stable tag: 0.3.6
 
 A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts. Requires PHP5.
 
@@ -51,8 +51,8 @@ Requires PHP5.
 
 You can configure Efficient Related Posts to add related posts automatically in
 Settings -> Related Posts.  Alternatively you can use the shortcode
-[relatedPosts] or the helper functions wp_get_related_posts() and
-wp_related_posts() in your theme files.
+[relatedPosts] or the you can use the 'erp-show-related-posts' action or
+'erp-get-related-posts' filter in your theme files.
 
 = How exactly do you use the [[relatedPosts]] shortcode? =
 
@@ -66,19 +66,26 @@ title (Title for related posts list, empty for none) like this:
 * `[relatedPosts num_to_display="1" no_rp_text="No Related Posts Found"]`
 * `[relatedPosts title="Try these related posts:" num_to_display="3" no_rp_text="No Related Posts Found"]`
 
+= How do I add this to my theme? =
+
+You can use the 'erp-show-related-posts' action or 'erp-get-related-posts'
+filter to display a list of related posts in your theme.  They need to be used
+in "the loop" and the only difference is that the 'erp-get-related-posts' filter
+returns the list and the 'erp-show-related-posts' action echos the list.  You
+can also pass an associative array of arguments to it such as num_to_display
+(Number of related posts to display), no_rp_text (Text to display if there are
+no related posts), and title (Title for related posts list, empty for none) like
+this:
+
+* `<?php do_action('erp-show-related-posts', array('title'=>'Most Related Post', 'num_to_display'=>1)); ?>`
+* `<?php echo apply_filters('erp-get-related-posts', array('num_to_display'=>1, 'no_rp_text'=>'No Related Posts Found')); ?>`
+* `<?php do_action('erp-show-related-posts', array('title'=>'Most Related Posts', 'num_to_display'=>3, 'no_rp_text'=>'No Related Posts Found')); ?>`
+
 = How do the theme helper functions work? =
 
-You can use `wp_get_related_posts()` and `wp_related_posts()` to display a list
-of related posts in your theme.  They need to be used in "the loop" and the only
-difference is that `wp_get_related_posts()` returns the list and
-`wp_related_posts()` echos the list.  You can also pass an associative array of
-arguments to it such as num_to_display (Number of related posts to display),
-no_rp_text (Text to display if there are no related posts), and title (Title for
-related posts list, empty for none) like this:
-
-* `wp_related_posts(array('title'=>'Most Related Post', 'num_to_display'=>1))`
-* `echo wp_get_related_posts(array('num_to_display'=>1, 'no_rp_text'=>'No Related Posts Found'))`
-* `wp_related_posts(array('title'=>'Most Related Post', 'num_to_display'=>3, 'no_rp_text'=>'No Related Posts Found'))`
+The theme helper functions still exist, but the new actions and filters
+mentioned above are preferred.  Hopefully the helper functions will be removed
+in the future, so PLEASE don't use them.
 
 = If it calculates related posts when a post is saved, won't a post only be related to older posts? =
 
@@ -94,6 +101,14 @@ Posts are considered related based on tags.  This may be extended in the future,
 but I wanted to keep the queries as clean as possible.
 
 == Changelog ==
+
+= 0.3.6 =
+* Update to the newest version of the Xavisys WordPress Plugin Framework
+* Fixes small display error on settings page for WP 3.0
+* Add 'erp-show-related-posts' action
+* Add 'erp-get-related-posts' filter
+* Deprecate wp_related_posts()
+* Deprecate wp_get_related_posts()
 
 = 0.3.5 =
 * Update to the newest version of the Xavisys WordPress Plugin Framework

@@ -3,7 +3,7 @@
  * Plugin Name: Efficient Related Posts
  * Plugin URI: http://xavisys.com/wordpress-plugins/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.3.5
+ * Version: 0.3.6
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
  * Text Domain: efficient-related-posts
@@ -47,6 +47,8 @@ class efficientRelatedPosts extends XavisysPlugin {
 		add_shortcode('relatedPosts', array($this, 'handleShortcodes'));
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 		add_filter( $this->_slug .'-opt-erp', array( $this, 'filterSettings' ) );
+		add_action( 'erp-show-related-posts', array( $this, 'relatedPosts' ) );
+		add_filter( 'erp-get-related-posts', array( $this, 'getRelatedPosts' ) );
 	}
 
 	protected function _postSettingsInit() {
@@ -137,7 +139,7 @@ class efficientRelatedPosts extends XavisysPlugin {
 						<th scope="row">
 							<label for="erp_ignore_cats"><?php _e('Ignore Categories:', $this->_slug); ?></label>
 						</th>
-						<td id="categorydiv">
+						<td id="categorydiv" class="categorydiv">
 							<div id="categories-all" class="tabs-panel">
 								<ul id="categorychecklist" class="list:category categorychecklist form-no-clear">
 <?php
@@ -587,6 +589,7 @@ class Walker_Category_Checklist_ERP extends Walker {
  * @param [optional]$args See efficientRelatedPosts::getRelatedPosts
  */
 function wp_related_posts( $args = array() ) {
+	_deprecated_function( __FUNCTION__, '0.3.5', '"erp-show-related-posts" action' );
 	// Instantiate our class
 	$efficientRelatedPosts = efficientRelatedPosts::getInstance();
 	$efficientRelatedPosts->relatedPosts($args);
@@ -596,6 +599,7 @@ function wp_related_posts( $args = array() ) {
  * @param [optional]$args See efficientRelatedPosts::getRelatedPosts
  */
 function wp_get_related_posts( $args = array() ) {
+	_deprecated_function( __FUNCTION__, '0.3.5', '"erp-get-related-posts" filter' );
 	// Instantiate our class
 	$efficientRelatedPosts = efficientRelatedPosts::getInstance();
 	return $efficientRelatedPosts->getRelatedPosts($args);
