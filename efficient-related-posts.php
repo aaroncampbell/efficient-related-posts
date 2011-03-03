@@ -124,7 +124,7 @@ class efficientRelatedPosts extends XavisysPlugin {
 							<label for="erp_title"><?php _e("Title:", $this->_slug); ?></label>
 						</th>
 						<td>
-							<input id="erp_title" name="erp[title]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['erp']['title']); ?>" size="40" />
+							<input id="erp_title" name="erp[title]" type="text" class="regular-text code" value="<?php esc_attr_e($this->_settings['erp']['title']); ?>" size="40" />
 						</td>
 					</tr>
 					<tr valign="top">
@@ -132,7 +132,7 @@ class efficientRelatedPosts extends XavisysPlugin {
 							<label for="erp_no_rp_text"><?php _e("Display Text When No Related Posts Found:", $this->_slug); ?></label>
 						</th>
 						<td>
-							<input id="erp_no_rp_text" name="erp[no_rp_text]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['erp']['no_rp_text']); ?>" size="40" />
+							<input id="erp_no_rp_text" name="erp[no_rp_text]" type="text" class="regular-text code" value="<?php esc_attr_e($this->_settings['erp']['no_rp_text']); ?>" size="40" />
 						</td>
 					</tr>
 					<tr valign="top">
@@ -155,7 +155,7 @@ class efficientRelatedPosts extends XavisysPlugin {
 							<label for="erp_max_relations_stored"><?php _e('Max Related Posts to Store:', $this->_slug); ?></label>
 						</th>
 						<td>
-							<input id="erp_max_relations_stored" name="erp[max_relations_stored]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['erp']['max_relations_stored']); ?>" size="40" />
+							<input id="erp_max_relations_stored" name="erp[max_relations_stored]" type="text" class="regular-text code" value="<?php esc_attr_e($this->_settings['erp']['max_relations_stored']); ?>" size="40" />
 							<span class="setting-description"><?php _e("Max number to store.  You can't display more than this.", $this->_slug); ?></span>
 						</td>
 					</tr>
@@ -164,7 +164,7 @@ class efficientRelatedPosts extends XavisysPlugin {
 							<label for="erp_num_to_display"><?php _e('Number of Related Posts to Display:', $this->_slug); ?></label>
 						</th>
 						<td>
-							<input id="erp_num_to_display" name="erp[num_to_display]" type="text" class="regular-text code" value="<?php echo attribute_escape($this->_settings['erp']['num_to_display']); ?>" size="40" />
+							<input id="erp_num_to_display" name="erp[num_to_display]" type="text" class="regular-text code" value="<?php esc_attr_e($this->_settings['erp']['num_to_display']); ?>" size="40" />
 							<span class="setting-description"><?php _e('The number of related posts to display if none is specified.', $this->_slug); ?></span>
 						</td>
 					</tr>
@@ -226,6 +226,10 @@ class efficientRelatedPosts extends XavisysPlugin {
 			$timestart = explode(' ', microtime() );
 			$timestart = $timestart[1] + $timestart[0];
 
+			if ( ! isset( $_POST['erp'] ) ) {
+				$_POST['erp'] = array();
+			}
+
 			$processed = $this->processAllPosts($_POST['erp']);
 
 			$timeend = explode(' ',microtime());
@@ -281,6 +285,9 @@ class efficientRelatedPosts extends XavisysPlugin {
 		$relatedPosts = get_post_meta($post->ID, '_efficient_related_posts', true);
 
 		if ( empty($relatedPosts) || $settings['num_to_display'] == 0 ){
+			/**
+			 * @todo The before and after setting should apply to this too
+			 */
 			$output .= "<li>{$settings['no_rp_text']}</li>";
 		} else {
 			$relatedPosts = array_slice($relatedPosts, 0, $settings['num_to_display']);
@@ -296,11 +303,17 @@ class efficientRelatedPosts extends XavisysPlugin {
 						'permalink'		=> get_permalink($related_post->ID)
 					);
 				}
-				$link = "<a href='{$p['permalink']}' title='" . attribute_escape(wptexturize($p['post_title']))."'>".wptexturize($p['post_title']).'</a>';
+				$link = "<a href='{$p['permalink']}' title='" . esc_attr(wptexturize($p['post_title']))."'>".wptexturize($p['post_title']).'</a>';
+				/**
+				 * @todo Make a before and after setting for this
+				 */
 				$output .= "<li>{$link}</li>";
 			}
 		}
 
+		/**
+		 * @todo Make a before and after setting for this
+		 */
 		$output = "<ul class='related_post'>{$output}</ul>";
 
 		if ( !empty($settings['title']) ) {
@@ -392,6 +405,9 @@ QUERY;
 						$threshold = $related_post->matches;
 						//unset($related_post->matches);
 						$related_post->permalink = get_permalink($related_post->ID);
+						if ( function_exists('get_the_post_image') ) {
+							$related_post->post_image = get_the_post_image($related_post->ID);
+						}
 						$relatedPostsToStore[] = (array)$related_post;
 					}
 				}
@@ -444,7 +460,7 @@ QUERY;
 			'continue'	=> false
 		);
 
-		$args = wp_parse_args((array) $_POST['erp'], $defaults);
+		$args = wp_parse_args((array) $args, $defaults);
 
 		$statuses = array('publish');
 
@@ -572,7 +588,7 @@ class Walker_Category_Checklist_ERP extends Walker {
 		extract($args);
 
 		$class = in_array( $category->term_id, $popular_cats ) ? ' class="popular-category"' : '';
-		$output .= "\n<li id='category-$category->term_id'$class>" . '<label class="selectit"><input value="' . $category->term_id . '" type="checkbox" name="erp[ignore_cats][]" id="in-category-' . $category->term_id . '"' . (in_array( $category->term_id, $selected_cats ) ? ' checked="checked"' : "" ) . '/> ' . wp_specialchars( apply_filters('the_category', $category->name )) . '</label>';
+		$output .= "\n<li id='category-$category->term_id'$class>" . '<label class="selectit"><input value="' . $category->term_id . '" type="checkbox" name="erp[ignore_cats][]" id="in-category-' . $category->term_id . '"' . (in_array( $category->term_id, $selected_cats ) ? ' checked="checked"' : "" ) . '/> ' . esc_html( apply_filters('the_category', $category->name )) . '</label>';
 	}
 
 	function end_el(&$output, $category, $depth, $args) {
