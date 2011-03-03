@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: related posts, posts, related, seo
 Requires at least: 2.8
 Tested up to: 3.1
-Stable tag: 0.3.7
+Stable tag: 0.3.8
 
 A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts. Requires PHP5.
 
@@ -108,6 +108,9 @@ Fixes notices that are thrown during activation and when processing all posts
 Uses the new WordPress function for escaping data
 
 == Changelog ==
+
+= 0.3.8 =
+* Fixed the notices when you activate the plugin.  For real this time!
 
 = 0.3.7 =
 * Fix notices that are thrown for undefined index
