@@ -2,9 +2,9 @@
 Contributors: aaroncampbell
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9996714
 Tags: related posts, posts, related, seo
-Requires at least: 2.7
-Tested up to: 3.0
-Stable tag: 0.3.6
+Requires at least: 2.8
+Tested up to: 3.1
+Stable tag: 0.3.7
 
 A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts. Requires PHP5.
 
@@ -100,7 +100,20 @@ will show the posts they are most related to regardless of post date.
 Posts are considered related based on tags.  This may be extended in the future,
 but I wanted to keep the queries as clean as possible.
 
+== Upgrade Notice ==
+
+= 0.3.7 =
+Adds support for post images
+Fixes notices that are thrown during activation and when processing all posts
+Uses the new WordPress function for escaping data
+
 == Changelog ==
+
+= 0.3.7 =
+* Fix notices that are thrown for undefined index
+* Add a new 'post_image' element to each related post if you is specified
+* Use newer esc_* functionsUpdate to the newest version of the Xavisys WordPress Plugin Framework
+* Upgrade Xavisys Plugin Framework
 
 = 0.3.6 =
 * Update to the newest version of the Xavisys WordPress Plugin Framework
