@@ -10,7 +10,7 @@ A related posts plugin that works quickly even with thousands of posts and tags.
 
 == Description ==
 
-There is a <a href="http://wpinformer.com/problem-related-post-plugins/">problem
+There is a <a href="http://xavisys.com/problem-related-post-plugins/">problem
 with related posts plugins</a>, and Efficient Related Posts is fixing that by
 approaching the problem from a different direction and offering a very different
 solution.
