@@ -303,7 +303,8 @@ class efficientRelatedPosts extends XavisysPlugin {
 						'permalink'		=> get_permalink($related_post->ID)
 					);
 				}
-				$link = "<a href='{$p['permalink']}' title='" . esc_attr(wptexturize($p['post_title']))."'>".wptexturize($p['post_title']).'</a>';
+				$title = apply_filters( 'erp_related_link_title', wptexturize( $p['post_title'] ), $p );
+				$link = '<a href="' . esc_url( $p['permalink'] ) . '" title="' . esc_attr( wptexturize( $p['post_title'] ) ) . '">' . $title . '</a>';
 				/**
 				 * @todo Make a before and after setting for this
 				 */
