@@ -15,7 +15,7 @@
  * http://codex.wordpress.org/Writing_a_Plugin#Avoiding_Function_Name_Collisions
  */
 require_once('range-plugin-framework.php');
-class efficientRelatedPosts extends XavisysPlugin {
+class efficientRelatedPosts extends RangePlugin {
 	/**
 	 * @var efficientRelatedPosts - Static property to hold our singleton instance
 	 */
