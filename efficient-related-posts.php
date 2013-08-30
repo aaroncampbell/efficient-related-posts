@@ -303,24 +303,19 @@ class efficientRelatedPosts extends XavisysPlugin {
 						'permalink'		=> get_permalink($related_post->ID)
 					);
 				}
-				$title = apply_filters( 'erp-related-link-content', wptexturize( $p['post_title'] ), $p );
+				$title = apply_filters( 'erp-related-link-content', wptexturize( $p['post_title'] ), $p, $settings );
 				$link = '<a href="' . esc_url( $p['permalink'] ) . '" title="' . esc_attr( wptexturize( $p['post_title'] ) ) . '">' . $title . '</a>';
-				$link = apply_filters( 'erp-related-link', $link, $p );
-				/**
-				 * @todo Make a before and after setting for this
-				 */
+				$link = apply_filters( 'erp-related-link', $link, $p, $settings );
 				$output .= "<li>{$link}</li>";
 			}
 		}
 
-		/**
-		 * @todo Make a before and after setting for this
-		 */
 		$output = "<ul class='related_post'>{$output}</ul>";
 
-		if ( !empty($settings['title']) ) {
+		if ( !empty($settings['title']) )
 			$output = "<h3 class='related_post_title'>{$settings['title']}</h3>{$output}";
-		}
+
+		$output = apply_filters( 'erp-related-links-output', $output, $p, $settings );
 
 		return $output;
 	}
