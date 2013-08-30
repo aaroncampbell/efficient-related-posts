@@ -3,7 +3,7 @@
  * Plugin Name: Efficient Related Posts
  * Plugin URI: http://xavisys.com/wordpress-plugins/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.4.0-alpha
+ * Version: 0.4.0
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
  * Text Domain: efficient-related-posts

@@ -3,14 +3,14 @@ Contributors: aaroncampbell
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9996714
 Tags: related posts, posts, related, seo
 Requires at least: 2.8
-Tested up to: 3.1
-Stable tag: 0.3.8
+Tested up to: 3.7
+Stable tag: 0.4.0
 
-A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts. Requires PHP5.
+A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts.
 
 == Description ==
 
-There is a <a href="http://xavisys.com/problem-related-post-plugins/">problem
+There is a <a href="http://bluedogwebservices.com/problem-related-post-plugins/">problem
 with related posts plugins</a>, and Efficient Related Posts is fixing that by
 approaching the problem from a different direction and offering a very different
 solution.
@@ -36,14 +36,9 @@ more in some areas.  Also, since the related posts are calculated when a post is
 saved, manually adding a tag through the database will have no effect on the
 related posts, although I recommend not doing that anyway.
 
-Requires PHP5.
-
 == Installation ==
 
-1. Verify that you have PHP5, which is required for this plugin.
-1. Upload the whole `efficient-related-posts` directory to the `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Configure related posts by going to Settings -> Related Posts
+1. Use automatic installer to install and active the plugin.
 
 == Frequently Asked Questions ==
 
@@ -102,12 +97,17 @@ but I wanted to keep the queries as clean as possible.
 
 == Upgrade Notice ==
 
-= 0.3.7 =
-Adds support for post images
-Fixes notices that are thrown during activation and when processing all posts
-Uses the new WordPress function for escaping data
+= 0.4.0 =
+Properly store post image, usable through filters
+Add several handy new filters
+Upgrade to new Range plugin framework
 
 == Changelog ==
+
+= 0.4.0 =
+* Properly store post image, usable through filters
+* Add several handy new filters
+* Upgrade to new Range plugin framework
 
 = 0.3.8 =
 * Fixed the notices when you activate the plugin.  For real this time!
