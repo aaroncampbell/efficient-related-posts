@@ -14,7 +14,7 @@
  * It helps us avoid name collisions
  * http://codex.wordpress.org/Writing_a_Plugin#Avoiding_Function_Name_Collisions
  */
-require_once('xavisys-plugin-framework.php');
+require_once('range-plugin-framework.php');
 class efficientRelatedPosts extends XavisysPlugin {
 	/**
 	 * @var efficientRelatedPosts - Static property to hold our singleton instance
