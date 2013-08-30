@@ -402,9 +402,9 @@ QUERY;
 						$threshold = $related_post->matches;
 						//unset($related_post->matches);
 						$related_post->permalink = get_permalink($related_post->ID);
-						if ( function_exists('get_the_post_image') ) {
-							$related_post->post_image = get_the_post_image($related_post->ID);
-						}
+						if ( function_exists('get_the_post_thumbnail') )
+							$related_post->post_image = get_the_post_thumbnail( $related_post->ID, apply_filters( 'erp-related-post-image-size', 'post-thumbnail' ) );
+
 						$relatedPostsToStore[] = (array)$related_post;
 					}
 				}
