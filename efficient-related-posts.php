@@ -60,11 +60,11 @@ class efficientRelatedPosts extends RangePlugin {
 		}
 	}
 
-	public function addOptionsMetaBoxes() {
-		add_meta_box( $this->_slug . '-general-settings', __('General Settings', $this->_slug), array($this, 'generalSettingsMetaBox'), 'xavisys-' . $this->_slug, 'main');
-		add_meta_box( $this->_slug . '-process-posts', __('Build Relations', $this->_slug), array($this, 'processPostsMetaBox'), 'xavisys-' . $this->_slug, 'main-2');
+	public function add_options_meta_boxes() {
+		add_meta_box( $this->_slug . '-general-settings', __('General Settings', $this->_slug), array($this, 'generalSettingsMetaBox'), 'range-' . $this->_slug, 'main');
+		add_meta_box( $this->_slug . '-process-posts', __('Build Relations', $this->_slug), array($this, 'processPostsMetaBox'), 'range-' . $this->_slug, 'main-2');
 		if (get_option('erp-processedPosts')) {
-			add_meta_box( $this->_slug . '-continue-processing-posts', __('Continue Processing Posts/Pages', $this->_slug), array($this, 'continueProcessingPostsMetaBox'), 'xavisys-' . $this->_slug, 'main-2');
+			add_meta_box( $this->_slug . '-continue-processing-posts', __('Continue Processing Posts/Pages', $this->_slug), array($this, 'continueProcessingPostsMetaBox'), 'range-' . $this->_slug, 'main-2');
 		}
 	}
 
