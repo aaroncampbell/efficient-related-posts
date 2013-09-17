@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: related posts, posts, related, seo
 Requires at least: 2.8
 Tested up to: 3.7
-Stable tag: 0.4.0
+Stable tag: 0.4.1
 
 A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts.
 
@@ -98,11 +98,17 @@ but I wanted to keep the queries as clean as possible.
 == Upgrade Notice ==
 
 = 0.4.0 =
+Fix issue with related posts not being auto inserted
+
+= 0.4.0 =
 Properly store post image, usable through filters
 Add several handy new filters
 Upgrade to new Range plugin framework
 
 == Changelog ==
+
+= 0.4.1 =
+* Fix incorrect function name
 
 = 0.4.0 =
 * Properly store post image, usable through filters
