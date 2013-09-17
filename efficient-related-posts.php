@@ -334,7 +334,7 @@ class efficientRelatedPosts extends RangePlugin {
 
 	private function _findRelations($post, $processRelated = false, $postIds = null) {
 		// Try to increase the time limit
-		set_time_limit(60);
+		@set_time_limit(60);
 		global $wpdb;
 		$now = current_time('mysql', 1);
 		$post = get_post($post);
