@@ -1,0 +1,15 @@
+{
+    "name": "openrange/efficient-related-posts",
+    "description": "A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts.",
+    "license": "GPL-2.0",
+    "type": "wordpress-plugin",
+    "authors": [
+        {
+            "name": "Range",
+            "email": "contact@ran.ge"
+        }
+    ],
+    "require": {
+        "composer/installers": "~1.0"
+    }
+}
