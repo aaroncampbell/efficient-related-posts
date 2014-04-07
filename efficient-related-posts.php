@@ -338,7 +338,9 @@ class efficientRelatedPosts extends RangePlugin {
 		global $wpdb;
 		$now = current_time('mysql', 1);
 		$post = get_post($post);
-		$tags = wp_get_post_tags($post->ID);
+		$taxonomy = 'post_tag';
+		$taxonomy = apply_filters( 'efficient-related-posts-taxonomy', $taxonomy );
+		$tags = wp_get_post_terms( $post->ID, $taxonomy );
 
 		if ( !empty($tags) ) {
 
