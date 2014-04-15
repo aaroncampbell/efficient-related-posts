@@ -1,0 +1,203 @@
+#. extracted from eurosportcsv/[LeMag-LeBuzz] Internationnalisation_FR - plugin-efficient-related-posts.csv
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-04-15 11:18+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Translate Toolkit 1.9.0\n"
+
+#: efficient-related-posts.php:32
+msgid "Efficient Related Posts"
+msgstr ""
+
+#: efficient-related-posts.php:33
+msgid "Related Posts"
+msgstr ""
+
+#: efficient-related-posts.php:64
+msgid "General Settings"
+msgstr ""
+
+#: efficient-related-posts.php:65
+msgid "Build Relations"
+msgstr ""
+
+#: efficient-related-posts.php:67
+msgid "Continue Processing Posts/Pages"
+msgstr ""
+
+#: efficient-related-posts.php:75
+msgid "Use this to build relationships for all posts."
+msgstr ""
+
+#: efficient-related-posts.php:77
+msgid ""
+"Warning, this could take a very long time (in test it took about 1 hour for "
+"2000 posts)."
+msgstr ""
+
+#: efficient-related-posts.php:82
+msgid "Posts/Pages to process:"
+msgstr ""
+
+#: efficient-related-posts.php:86
+msgid "Process drafts"
+msgstr ""
+
+#: efficient-related-posts.php:88
+msgid "Process pending posts"
+msgstr ""
+
+#: efficient-related-posts.php:90
+msgid "Process scheduled posts"
+msgstr ""
+
+#: efficient-related-posts.php:95
+msgid "Process Posts/Pages"
+msgstr ""
+
+#: efficient-related-posts.php:105
+msgid ""
+"The last processing didn't complete.  If you want to continue where it left "
+"off, use this:"
+msgstr ""
+
+#: efficient-related-posts.php:113
+msgid "Continue Processing"
+msgstr ""
+
+#: efficient-related-posts.php:124
+msgid "Title:"
+msgstr ""
+
+#: efficient-related-posts.php:132
+msgid "Display Text When No Related Posts Found:"
+msgstr ""
+
+#: efficient-related-posts.php:140
+msgid "Ignore Categories:"
+msgstr ""
+
+#: efficient-related-posts.php:155
+msgid "Max Related Posts to Store:"
+msgstr ""
+
+#: efficient-related-posts.php:159
+msgid "Max number to store.  You can't display more than this."
+msgstr ""
+
+#: efficient-related-posts.php:164
+msgid "Number of Related Posts to Display:"
+msgstr ""
+
+#: efficient-related-posts.php:168
+msgid "The number of related posts to display if none is specified."
+msgstr ""
+
+#: efficient-related-posts.php:173
+msgid "Other Setting:"
+msgstr ""
+
+#: efficient-related-posts.php:178
+msgid "Do Not Auto Insert Into Posts"
+msgstr ""
+
+#: efficient-related-posts.php:183
+msgid "Auto Insert Everywhere (Posts and Pages)"
+msgstr ""
+
+#: efficient-related-posts.php:188
+msgid "Auto Insert Into Only Single Posts and Pages"
+msgstr ""
+
+#: efficient-related-posts.php:193
+msgid "Auto Insert Into Posts"
+msgstr ""
+
+#: efficient-related-posts.php:198
+msgid "Auto Insert Into Only Single Posts"
+msgstr ""
+
+#: efficient-related-posts.php:204
+msgid "Related Posts for RSS"
+msgstr ""
+
+#: efficient-related-posts.php:240
+msgid "Processed %d post."
+msgstr ""
+
+#: efficient-related-posts.php:240
+msgid "Processed %d posts."
+msgstr ""
+
+#: efficient-related-posts.php:242
+msgid "Process took %s second."
+msgstr ""
+
+#: efficient-related-posts.php:242
+msgid "Process took %s seconds."
+msgstr ""
+
+#: efficient-related-posts.php:548
+msgid "Related Posts:"
+msgstr ""
+
+#: efficient-related-posts.php:549
+msgid "No Related Posts"
+msgstr ""
+
+#: range-plugin-framework.php:246
+msgid "Update Options &raquo;"
+msgstr ""
+
+#: range-plugin-framework.php:292
+msgid "Rate Plugin"
+msgstr ""
+
+#: range-plugin-framework.php:298
+msgid "Support"
+msgstr ""
+
+#: range-plugin-framework.php:306
+msgid "Donate to show your appreciation."
+msgstr ""
+
+#: range-plugin-framework.php:317
+msgid "Give it a good rating on WordPress.org."
+msgstr ""
+
+#: range-plugin-framework.php:327
+msgid "Settings"
+msgstr ""
+
+#: range-plugin-framework.php:356
+msgid "Like this Plugin?"
+msgstr ""
+
+#: range-plugin-framework.php:359
+msgid "Need Support?"
+msgstr ""
+
+#: range-plugin-framework.php:362
+msgid "Latest news from Range"
+msgstr ""
+
+#: range-plugin-framework.php:367
+msgid "Then please do any or all of the following:"
+msgstr ""
+
+#: range-plugin-framework.php:372
+msgid "Link to it so others can find out about it."
+msgstr ""
+
+#: range-plugin-framework.php:384
+msgid ""
+"If you have any problems with this plugin or ideas for improvements or "
+"enhancements, please use the <a href=\"%s\">Support Forums</a>."
+msgstr ""
