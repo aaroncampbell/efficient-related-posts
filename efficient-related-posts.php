@@ -375,7 +375,7 @@ class efficientRelatedPosts extends RangePlugin {
 				{$wpdb->posts} p
 			WHERE
 				{$postIds}
-				t_t.taxonomy ='post_tag' AND
+				t_t.taxonomy ='{$taxonomy}' AND
 				t_t.term_taxonomy_id = t_r.term_taxonomy_id AND
 				t_r.object_id  = p.ID AND
 				(t_t.term_id IN ({$tagList})) AND
