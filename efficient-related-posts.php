@@ -45,7 +45,6 @@ class efficientRelatedPosts extends RangePlugin {
 		add_action( 'admin_init', array( $this, 'processPosts' ) );
 		add_action( 'permalink_structure_changed', array( $this, 'fixPermalinks' ) );
 		add_shortcode('relatedPosts', array($this, 'handleShortcodes'));
-		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 		add_filter( $this->_slug .'-opt-erp', array( $this, 'filterSettings' ) );
 		add_action( 'erp-show-related-posts', array( $this, 'relatedPosts' ) );
 		add_filter( 'erp-get-related-posts', array( $this, 'getRelatedPosts' ) );
@@ -510,10 +509,6 @@ QUERY;
 			$wpdb->update( $wpdb->postmeta, $data, $where );
 			wp_cache_delete($relatedPosts->post_id, 'post_meta');
 		}
-	}
-
-	public function activate() {
-		$this->processAllPosts();
 	}
 
     /**
