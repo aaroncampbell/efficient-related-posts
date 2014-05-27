@@ -143,8 +143,6 @@ if (!class_exists('RangePlugin')) {
 			if ( is_callable(array( $this, 'add_options_meta_boxes' )) )
 				add_action( 'admin_init', array( $this, 'add_options_meta_boxes' ) );
 
-			add_action( 'admin_init', array( $this, 'add_default_options_meta_boxes' ) );
-			add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widgets' ), null, 9 );
 			add_action( 'admin_print_scripts', array( $this,'admin_print_scripts' ) );
 			add_action( 'admin_enqueue_scripts', array( $this,'admin_enqueue_scripts' ) );
 
@@ -349,73 +347,6 @@ if (!class_exists('RangePlugin')) {
 				}
 			</style>
 			<?php
-		}
-
-		public function add_default_options_meta_boxes() {
-			if ( apply_filters( 'show-range-like-this', true ) )
-				add_meta_box( $this->_slug . '-like-this', __('Like this Plugin?', $this->_slug), array($this, 'like_this_meta_box'), 'range-' . $this->_slug, 'sidebar');
-
-			if ( apply_filters( 'show-range-support', true ) )
-				add_meta_box( $this->_slug . '-support', __('Need Support?', $this->_slug), array($this, 'support_meta_box'), 'range-' . $this->_slug, 'sidebar');
-
-			if ( apply_filters( 'show-range-feed', true ) )
-				add_meta_box( $this->_slug . '-range-feed', __('Latest news from Range', $this->_slug), array($this, 'range_feed_meta_box'), 'range-' . $this->_slug, 'sidebar');
-		}
-
-		public function like_this_meta_box() {
-			echo '<p>';
-			_e('Then please do any or all of the following:', $this->_slug);
-			echo '</p><ul>';
-
-			$url = apply_filters('range-plugin-url-'.$this->_slug, 'http://bluedogwebservices.com/wordpress-plugin/'.$this->_slug);
-			echo "<li><a href='{$url}'>";
-			_e('Link to it so others can find out about it.', $this->_slug);
-			echo "</a></li>";
-
-			echo '<li>' . $this->get_plugin_link() . '</li>';
-
-			echo '<li>' . $this->get_donate_link() . '</li>';
-
-			echo '</ul>';
-		}
-
-		public function support_meta_box() {
-			echo '<p>';
-			echo sprintf(__('If you have any problems with this plugin or ideas for improvements or enhancements, please use the <a href="%s">Support Forums</a>.', $this->_slug), $this->get_support_forum_url() );
-			echo '</p>';
-		}
-
-		public function range_feed_meta_box() {
-			$args = array(
-				'url'			=> $this->_feed_url,
-				'items'			=> '5',
-			);
-			echo '<div class="rss-widget">';
-			wp_widget_rss_output( $args );
-			echo "</div>";
-		}
-
-		public function add_dashboard_widgets() {
-			if ( apply_filters( 'rpf-dashboard-widget', true ) )
-				wp_add_dashboard_widget( 'dashboardb_range' , 'The Latest News From Range' , array( $this, 'dashboard_widget' ) );
-		}
-
-		public function dashboard_widget() {
-			$args = array(
-				'url'			=> $this->_feed_url,
-				'items'			=> '3',
-				'show_date'		=> 1,
-				'show_summary'	=> 1,
-			);
-			$logo_url = sprintf( 'http%s://range-wphost.netdna-ssl.com/content/uploads/2012/06/range-trans.png' , is_ssl()? 's':'' );
-			$icon = includes_url('images/rss.png');
-			echo '<div class="rss-widget">';
-			echo '<a href="http://ran.ge"><img class="alignright" style="padding:0 0 5px 10px;" src="' . esc_url_raw( $logo_url ) . '" /></a>';
-			wp_widget_rss_output( $args );
-			echo '<p style="border-top: 1px solid #CCC; padding-top: 10px; font-weight: bold;">';
-			echo '<a href="' . $this->_feed_url . '"><img src="' . $icon . '" alt=""/> Subscribe with RSS</a>';
-			echo "</p>";
-			echo "</div>";
 		}
 
 		public function screen_icon_link($name = 'range') {

@@ -3,7 +3,7 @@
  * Plugin Name: Efficient Related Posts
  * Plugin URI: http://xavisys.com/wordpress-plugins/efficient-related-posts/
  * Description: A related posts plugin that works quickly even with thousands of posts and tags
- * Version: 0.4.1
+ * Version: 0.4.2
  * Author: Aaron D. Campbell
  * Author URI: http://xavisys.com/
  * Text Domain: efficient-related-posts
@@ -45,7 +45,6 @@ class efficientRelatedPosts extends RangePlugin {
 		add_action( 'admin_init', array( $this, 'processPosts' ) );
 		add_action( 'permalink_structure_changed', array( $this, 'fixPermalinks' ) );
 		add_shortcode('relatedPosts', array($this, 'handleShortcodes'));
-		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 		add_filter( $this->_slug .'-opt-erp', array( $this, 'filterSettings' ) );
 		add_action( 'erp-show-related-posts', array( $this, 'relatedPosts' ) );
 		add_filter( 'erp-get-related-posts', array( $this, 'getRelatedPosts' ) );
@@ -133,21 +132,6 @@ class efficientRelatedPosts extends RangePlugin {
 						</th>
 						<td>
 							<input id="erp_no_rp_text" name="erp[no_rp_text]" type="text" class="regular-text code" value="<?php esc_attr_e($this->_settings['erp']['no_rp_text']); ?>" size="40" />
-						</td>
-					</tr>
-					<tr valign="top">
-						<th scope="row">
-							<label for="erp_ignore_cats"><?php _e('Ignore Categories:', $this->_slug); ?></label>
-						</th>
-						<td id="categorydiv" class="categorydiv">
-							<div id="categories-all" class="tabs-panel">
-								<ul id="categorychecklist" class="list:category categorychecklist form-no-clear">
-<?php
-							$erpWalker = new Walker_Category_Checklist_ERP();
-							wp_category_checklist(0, 0, $this->_settings['erp']['ignore_cats'], array(), $erpWalker);
-?>
-								</ul>
-							</div>
 						</td>
 					</tr>
 					<tr valign="top">
@@ -338,10 +322,13 @@ class efficientRelatedPosts extends RangePlugin {
 		global $wpdb;
 		$now = current_time('mysql', 1);
 		$post = get_post($post);
-		$tags = wp_get_post_tags($post->ID);
+		$taxonomy = 'post_tag';
+		$taxonomy = apply_filters( 'efficient-related-posts-taxonomy', $taxonomy );
+		$tags = wp_get_post_terms( $post->ID, $taxonomy );
 
 		if ( !empty($tags) ) {
 
+			$limit = absint( $this->_settings['erp']['max_relations_stored'] );
 			$tagList = array();
 			foreach ( $tags as $t ) {
 				$tagList[] = $t->term_id;
@@ -373,7 +360,7 @@ class efficientRelatedPosts extends RangePlugin {
 				{$wpdb->posts} p
 			WHERE
 				{$postIds}
-				t_t.taxonomy ='post_tag' AND
+				t_t.taxonomy ='{$taxonomy}' AND
 				t_t.term_taxonomy_id = t_r.term_taxonomy_id AND
 				t_r.object_id  = p.ID AND
 				(t_t.term_id IN ({$tagList})) AND
@@ -385,6 +372,8 @@ class efficientRelatedPosts extends RangePlugin {
 			ORDER BY
 				matches DESC,
 				p.post_date_gmt DESC
+			LIMIT
+				{$limit}
 
 QUERY;
 			$related_posts = $wpdb->get_results($q);
@@ -394,11 +383,9 @@ QUERY;
 
 			if ($related_posts) {
 				foreach ($related_posts as $related_post ){
-					$overlap = array_intersect(wp_get_post_categories($related_post->ID), $this->_settings['erp']['ignore_cats']);
-
 					$allRelatedPosts[] = $related_post;
 
-					if ( empty($overlap) && count($relatedPostsToStore) < $this->_settings['erp']['max_relations_stored'] ) {
+					if ( count($relatedPostsToStore) < $this->_settings['erp']['max_relations_stored'] ) {
 						$threshold = $related_post->matches;
 						//unset($related_post->matches);
 						$related_post->permalink = get_permalink($related_post->ID);
@@ -524,10 +511,6 @@ QUERY;
 		}
 	}
 
-	public function activate() {
-		$this->processAllPosts();
-	}
-
     /**
 	 * Replace our shortCode with the list of related posts
 	 *
@@ -547,7 +530,6 @@ QUERY;
 		$defaults = array(
 			'title'					=> __("Related Posts:", $this->_slug),
 			'no_rp_text'			=> __("No Related Posts", $this->_slug),
-			'ignore_cats'			=> array(),
 			'max_relations_stored'	=> 10,
 			'num_to_display'		=> 5,
 			'auto_insert'			=> 'no',
@@ -555,44 +537,12 @@ QUERY;
 		);
 		$settings = wp_parse_args($settings, $defaults);
 
-		if ( !is_array($settings['ignore_cats']) ) {
-			$settings['ignore_cats'] = preg_split('/\s*,\s*/', trim($settings['ignore_cats']), -1, PREG_SPLIT_NO_EMPTY);
-		}
 		$settings['max_relations_stored'] = intval($settings['max_relations_stored']);
 		$settings['num_to_display'] = intval($settings['num_to_display']);
 
 		return $settings;
 	}
 }
-/**
- * Our custom Walker because Walker_Category_Checklist doesn't let you use your own field name
- */
-class Walker_Category_Checklist_ERP extends Walker {
-	var $tree_type = 'category';
-	var $db_fields = array ('parent' => 'parent', 'id' => 'term_id'); //TODO: decouple this
-
-	function start_lvl( &$output, $depth = 0, $args = array() ) {
-		$indent = str_repeat("\t", $depth);
-		$output .= "$indent<ul class='children'>\n";
-	}
-
-	function end_lvl( &$output, $depth = 0, $args = array() ) {
-		$indent = str_repeat("\t", $depth);
-		$output .= "$indent</ul>\n";
-	}
-
-	function start_el( &$output, $category, $depth = 0, $args = array(), $current_object_id = 0 ) {
-		extract($args);
-
-		$class = in_array( $category->term_id, $popular_cats ) ? ' class="popular-category"' : '';
-		$output .= "\n<li id='category-$category->term_id'$class>" . '<label class="selectit"><input value="' . $category->term_id . '" type="checkbox" name="erp[ignore_cats][]" id="in-category-' . $category->term_id . '"' . (in_array( $category->term_id, $selected_cats ) ? ' checked="checked"' : "" ) . '/> ' . esc_html( apply_filters('the_category', $category->name )) . '</label>';
-	}
-
-	function end_el( &$output, $category, $depth = 0, $args = array() ) {
-		$output .= "</li>\n";
-	}
-}
-
 
 /**
  * Helper functions
