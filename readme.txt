@@ -3,8 +3,8 @@ Contributors: aaroncampbell
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9996714
 Tags: related posts, posts, related, seo
 Requires at least: 2.8
-Tested up to: 3.7
-Stable tag: 0.4.1
+Tested up to: 4.2
+Stable tag: 0.5
 
 A related posts plugin that works quickly even with thousands of posts and tags.  Can be added automatically to the end of posts.
 
@@ -97,7 +97,10 @@ but I wanted to keep the queries as clean as possible.
 
 == Upgrade Notice ==
 
-= 0.4.0 =
+= 0.5 =
+Compatible with PHP 7 and bugfixes
+
+= 0.4.1 =
 Fix issue with related posts not being auto inserted
 
 = 0.4.0 =
@@ -106,6 +109,11 @@ Add several handy new filters
 Upgrade to new Range plugin framework
 
 == Changelog ==
+
+= 0.5 =
+* Move away from Range Framework
+* Fix PHP Warnings from method declaration mismatches
+* Remove extract() use
 
 = 0.4.1 =
 * Fix incorrect function name
