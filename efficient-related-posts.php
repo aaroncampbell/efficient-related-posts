@@ -582,10 +582,11 @@ class Walker_Category_Checklist_ERP extends Walker {
 	}
 
 	public function start_el( &$output, $object, $depth = 0, $args = array(), $current_object_id = 0 ) {
-		extract($args);
+		$args['popular_cats'] = empty( $args['popular_cats'] ) ? array() : $args['popular_cats'];
+		$args['selected_cats'] = empty( $args['selected_cats'] ) ? array() : $args['selected_cats'];
 
-		$class = in_array( $object->term_id, $popular_cats ) ? ' class="popular-category"' : '';
-		$output .= "\n<li id='category-$object->term_id'$class>" . '<label class="selectit"><input value="' . $object->term_id . '" type="checkbox" name="erp[ignore_cats][]" id="in-category-' . $object->term_id . '"' . (in_array( $object->term_id, $selected_cats ) ? ' checked="checked"' : "" ) . '/> ' . esc_html( apply_filters('the_category', $object->name )) . '</label>';
+		$class = in_array( $object->term_id, $args['popular_cats'] ) ? ' class="popular-category"' : '';
+		$output .= "\n<li id='category-{$object->term_id}'$class>" . '<label class="selectit"><input value="' . $object->term_id . '" type="checkbox" name="erp[ignore_cats][]" id="in-category-' . $object->term_id . '"' . (in_array( $object->term_id, $args['selected_cats'] ) ? ' checked="checked"' : "" ) . '/> ' . esc_html( apply_filters('the_category', $object->name )) . '</label>';
 	}
 
 	public function end_el( &$output, $object, $depth = 0, $args = array() ) {
