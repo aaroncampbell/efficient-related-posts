@@ -14,8 +14,8 @@
  * It helps us avoid name collisions
  * http://codex.wordpress.org/Writing_a_Plugin#Avoiding_Function_Name_Collisions
  */
-require_once('range-plugin-framework.php');
-class efficientRelatedPosts extends RangePlugin {
+require_once('aaron-plugin-framework.php');
+class efficientRelatedPosts extends AaronPlugin {
 	/**
 	 * @var efficientRelatedPosts - Static property to hold our singleton instance
 	 */
@@ -61,10 +61,10 @@ class efficientRelatedPosts extends RangePlugin {
 	}
 
 	public function add_options_meta_boxes() {
-		add_meta_box( $this->_slug . '-general-settings', __('General Settings', $this->_slug), array($this, 'generalSettingsMetaBox'), 'range-' . $this->_slug, 'main');
-		add_meta_box( $this->_slug . '-process-posts', __('Build Relations', $this->_slug), array($this, 'processPostsMetaBox'), 'range-' . $this->_slug, 'main-2');
+		add_meta_box( $this->_slug . '-general-settings', __('General Settings', $this->_slug), array($this, 'generalSettingsMetaBox'), 'aaron-' . $this->_slug, 'main');
+		add_meta_box( $this->_slug . '-process-posts', __('Build Relations', $this->_slug), array($this, 'processPostsMetaBox'), 'aaron-' . $this->_slug, 'main-2');
 		if (get_option('erp-processedPosts')) {
-			add_meta_box( $this->_slug . '-continue-processing-posts', __('Continue Processing Posts/Pages', $this->_slug), array($this, 'continueProcessingPostsMetaBox'), 'range-' . $this->_slug, 'main-2');
+			add_meta_box( $this->_slug . '-continue-processing-posts', __('Continue Processing Posts/Pages', $this->_slug), array($this, 'continueProcessingPostsMetaBox'), 'aaron-' . $this->_slug, 'main-2');
 		}
 	}
 
